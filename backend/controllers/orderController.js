@@ -260,7 +260,15 @@ const updateDeliveryStatus = async (req, res) => {
     }
 
     // Future: Emit socket to user to notify them of delivery status change
-
+    const io = req.app.get("io");
+    if (io) {
+    io.to(`user_${order.user}`).emit("orderStatusUpdate", {
+        orderId: order._id,
+        deliveryStatus: order.deliveryStatus,
+        updatedAt: order.updatedAt,
+        message: `Your order status is now: ${deliveryStatus}`,
+    });
+    }
     res.json({
       success: true,
       data: order,
@@ -270,10 +278,86 @@ const updateDeliveryStatus = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+// @desc    Get aggregated statistics for manager dashboard
+// @route   GET /api/orders/dashboard-stats
+// @access  Private (Owner)
+const getDashboardStats = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findOne({ owner: req.user._id });
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: 'Restaurant not found' });
+    }
+
+    const stats = await Order.aggregate([
+      // Stage 1: Match orders for this specific restaurant
+      { $match: { restaurant: restaurant._id } },
+      
+      // Stage 2: Group everything together (_id: null) and calculate metrics
+      { $group: {
+          _id: null,
+          totalOrders: { $sum: 1 },
+          
+          // Revenue: Only sum totalPrice IF paymentStatus is true
+          totalRevenue: { 
+            $sum: { $cond: [{ $eq: ["$paymentStatus", true] }, "$totalPrice", 0] }
+          },
+          
+          // Pending Orders: Payment is false, OR (payment is true but delivery is NOT "delivered")
+          pendingOrders: {
+            $sum: { 
+              $cond: [
+                { $or: [
+                  { $eq: ["$paymentStatus", false] },
+                  { $and: [
+                    { $eq: ["$paymentStatus", true] },
+                    { $ne: ["$deliveryStatus", "delivered"] }
+                  ]}
+                ]},
+                1, 0
+              ]
+            }
+          },
+          
+          // Delivered Orders: Payment is true AND delivery is "delivered"
+          deliveredOrders: {
+            $sum: {
+              $cond: [
+                { $and: [
+                  { $eq: ["$paymentStatus", true] },
+                  { $eq: ["$deliveryStatus", "delivered"] }
+                ]},
+                1, 0
+              ]
+            }
+          }
+      }},
+      
+      // Stage 3: Clean up the output format
+      { $project: {
+          _id: 0,
+          totalOrders: 1,
+          totalRevenue: 1,
+          pendingOrders: 1,
+          deliveredOrders: 1
+      }}
+    ]);
+
+    // Handle case where restaurant has no orders yet
+    const defaultStats = { totalOrders: 0, totalRevenue: 0, pendingOrders: 0, deliveredOrders: 0 };
+
+    res.json({ 
+      success: true, 
+      data: stats.length > 0 ? stats[0] : defaultStats 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 module.exports = {
   placeOrder,
   getMyOrders,
   getRestaurantOrders,
   updateDeliveryStatus,
+  getDashboardStats,
 };

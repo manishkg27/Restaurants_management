@@ -5,6 +5,7 @@ const {
   getMyOrders,
   getRestaurantOrders,
   updateDeliveryStatus,
+  getDashboardStats,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -15,7 +16,9 @@ router.use(protect);
 router.post("/", placeOrder);
 router.get("/my-orders", getMyOrders);
 
+
 // Manager/Owner Routes
+router.get('/dashboard-stats', getDashboardStats); 
 router.get("/restaurant-orders", getRestaurantOrders);
 router.patch("/:orderId/delivery", updateDeliveryStatus);
 
