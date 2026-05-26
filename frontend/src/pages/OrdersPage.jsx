@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./OrdersPage.css";
 import { getMyOrders } from "../api/orderAPI";
 import LoadingSpinner from "../components/LoadingSpinner";
 import FeedbackForm from "../components/FeedbackForm";
@@ -30,16 +31,16 @@ const OrdersPage = () => {
   }, [activeTab]);
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-xl mx-auto px-4">
+    <div className="orders-page">
+      <div className="orders-page__container">
         {/* Title */}
-        <div className="flex items-center gap-2 mb-6">
-          <ClipboardList size={22} className="text-orange-600" />
-          <h2 className="text-lg font-bold text-gray-900 m-0">My Orders</h2>
+        <div className="orders-page__header">
+          <ClipboardList size={22} className="orders-page__header-icon" />
+          <h2 className="orders-page__title">My Orders</h2>
         </div>
 
         {/* Tab Selectors: Rounded Buttons with Spacing */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
+        <div className="orders-page__tabs">
           {[
             { id: "current", label: "Active Orders", icon: Truck },
             { id: "payment-pending", label: "Unpaid", icon: AlertCircle },
@@ -54,10 +55,10 @@ const OrdersPage = () => {
                   setActiveTab(tab.id);
                   setSelectedItemForFeedback(null);
                 }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer border transition shadow-xs ${
+                className={`orders-page__tab-btn ${
                   isSelected
-                    ? "bg-orange-600 border-orange-600 text-white"
-                    : "bg-white border-gray-300 text-gray-600 hover:text-orange-600 hover:border-orange-200"
+                    ? "orders-page__tab-btn--active"
+                    : "orders-page__tab-btn--inactive"
                 }`}
               >
                 <Icon size={12} />
@@ -71,37 +72,37 @@ const OrdersPage = () => {
         {loading ? (
           <LoadingSpinner />
         ) : orders.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-gray-500 text-xs shadow-sm">
-            <ClipboardList size={30} className="mx-auto mb-3 opacity-30 text-gray-400" />
-            <p className="m-0 font-medium">No orders found in this category.</p>
+          <div className="orders-page__empty">
+            <ClipboardList size={30} className="orders-page__empty-icon" />
+            <p className="orders-page__empty-text">No orders found in this category.</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="orders-page__list">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4"
+                className="orders-page__card"
               >
                 {/* Header: Restaurant Name & Order Id */}
-                <div className="border-b border-gray-100 pb-3">
-                  <h3 className="text-base font-bold text-gray-800 m-0">
+                <div className="orders-page__card-header">
+                  <h3 className="orders-page__card-title">
                     {order.restaurant?.name || "Premium Restaurant"}
                   </h3>
-                  <span className="text-xxs font-semibold text-gray-400 block mt-1">
+                  <span className="orders-page__card-subtitle">
                     Order #{order._id.substring(order._id.length - 8).toUpperCase()}
                   </span>
                 </div>
 
                 {/* Body Details */}
-                <div className="flex flex-col gap-2.5 text-xs text-gray-700">
+                <div className="orders-page__card-body">
                   {/* Status */}
-                  <div className="flex items-center gap-1 font-semibold">
+                  <div className="orders-page__status">
                     <span>Status:</span>
                     <span
-                      className={`capitalize ${
+                      className={`orders-page__status-text ${
                         order.deliveryStatus === "delivered"
-                          ? "text-green-600"
-                          : "text-orange-600 animate-pulse"
+                          ? "orders-page__status-text--delivered"
+                          : "orders-page__status-text--active"
                       }`}
                     >
                       {order.deliveryStatus}
@@ -109,13 +110,13 @@ const OrdersPage = () => {
                   </div>
 
                   {/* Items list */}
-                  <div>
-                    <span className="font-semibold block mb-1">Items:</span>
-                    <ul className="list-disc pl-5 m-0 flex flex-col gap-1 text-gray-600">
+                  <div className="orders-page__items">
+                    <span className="orders-page__items-label">Items:</span>
+                    <ul className="orders-page__items-list">
                       {order.items?.map((item, idx) => (
                         <li key={idx}>
                           <span>
-                            {item.itemName} <strong className="text-gray-400 text-[10px]">x{item.quantity}</strong>
+                            {item.itemName} <strong className="orders-page__item-qty">x{item.quantity}</strong>
                           </span>
                         </li>
                       ))}
@@ -123,34 +124,34 @@ const OrdersPage = () => {
                   </div>
 
                   {/* Grand Total */}
-                  <div className="border-t border-gray-100 pt-3 flex justify-between items-center font-bold">
-                    <span className="text-gray-600 text-xxs uppercase tracking-wider">Total Amount</span>
-                    <span className="text-base text-gray-800">
+                  <div className="orders-page__total">
+                    <span className="orders-page__total-label">Total Amount</span>
+                    <span className="orders-page__total-value">
                       {formatCurrency(order.totalPrice)}
                     </span>
                   </div>
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="flex flex-wrap gap-2 pt-1">
+                <div className="orders-page__actions">
                   {order.deliveryStatus !== "delivered" ? (
                     <button
                       onClick={() => alert(`Tracking your order from ${order.restaurant?.name}. Status is currently: ${order.deliveryStatus}`)}
-                      className="flex-grow bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded text-xs cursor-pointer border-none text-center block no-underline"
+                      className="orders-page__action-btn"
                     >
                       Track Order
                     </button>
                   ) : (
-                    <div className="w-full flex flex-col gap-2">
-                      <span className="text-xxs font-bold text-gray-400 uppercase tracking-widest block text-center mb-1">
+                    <div className="orders-page__feedback">
+                      <span className="orders-page__feedback-label">
                         Help us improve
                       </span>
-                      <div className="flex gap-2">
+                      <div className="orders-page__feedback-btns">
                         {order.items?.map((item, idx) => (
                           <button
                             key={idx}
                             onClick={() => setSelectedItemForFeedback(item.item || item._id)}
-                            className="flex-grow bg-white hover:bg-orange-50 text-orange-600 border border-orange-600 font-semibold py-1 px-3 rounded text-xxs cursor-pointer"
+                            className="orders-page__review-btn"
                           >
                             Review {item.itemName.substring(0, 10)}...
                           </button>
@@ -162,7 +163,7 @@ const OrdersPage = () => {
 
                 {/* Inline Review form trigger */}
                 {selectedItemForFeedback && order.items.some((it) => (it.item || it._id) === selectedItemForFeedback) && (
-                  <div className="mt-2 border-t border-gray-100 pt-4">
+                  <div className="orders-page__feedback-form-container">
                     <FeedbackForm
                       itemId={selectedItemForFeedback}
                       onSuccess={() => setSelectedItemForFeedback(null)}

@@ -7,6 +7,7 @@ import ItemCard from "../components/ItemCard";
 import { Search, Sparkles, ChefHat } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
+import "./HomePage.css";
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -59,67 +60,67 @@ const HomePage = () => {
   if (loading) return <LoadingSpinner fullPage />;
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="home">
       {/* Simple Clean Hero Section */}
-      <section className="bg-white border-b border-gray-200 py-10 md:py-14 shadow-xs">
-        <div className="max-w-4xl mx-auto px-4 flex flex-col items-center text-center gap-4">
+      <section className="home__hero">
+        <div className="home__hero-content">
           
           {user && user.role === "owner" && (
-            <div className="bg-orange-50 border border-orange-200 text-orange-700 px-4 py-2 rounded-md text-xs font-semibold mb-2 flex items-center gap-2">
+            <div className="home__owner-alert">
               <ChefHat size={14} />
               <span>Owner Account Verified! Go to your </span>
-              <Link to="/owner/dashboard" className="text-gray-900 font-bold underline hover:text-orange-600">
+              <Link to="/owner/dashboard" className="home__owner-link">
                 Dashboard
               </Link>
             </div>
           )}
 
-          <div className="bg-gray-100 border border-gray-200 px-3 py-1 rounded-full text-xxs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
-            <Sparkles size={11} className="text-orange-600" />
+          <div className="home__badge">
+            <Sparkles size={11} className="home__badge-icon" />
             <span>Eatify final-year student project template</span>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight m-0">
+          <h1 className="home__title">
             Find Your Favorite Food
           </h1>
 
-          <p className="text-xs md:text-sm text-gray-500 max-w-lg leading-relaxed m-0">
+          <p className="home__subtitle">
             Discover the best local cuisines, check out menu items, and place orders directly to your doorstep.
           </p>
 
           {/* Search form */}
           <form
             onSubmit={handleSearchSubmit}
-            className="bg-white border border-gray-300 shadow-sm rounded-md flex w-full max-w-md p-1 mt-3"
+            className="home__search-form"
           >
-            <div className="flex items-center flex-grow px-3 gap-2">
-              <Search size={14} className="text-gray-400" />
+            <div className="home__search-input-wrapper">
+              <Search size={14} className="home__search-icon" />
               <input
                 type="text"
                 placeholder="Search dishes, cuisines, or restaurants..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-none bg-transparent outline-none w-full text-xs text-gray-800"
+                className="home__search-input"
               />
             </div>
-            <button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-5 rounded text-xs cursor-pointer border-none flex-shrink-0">
+            <button type="submit" className="home__search-button">
               Search
             </button>
           </form>
 
           {/* Food Categories Selector Chips */}
-          <div className="mt-8 w-full max-w-md">
-            <span className="text-xxs font-bold text-gray-400 uppercase tracking-widest block mb-3 text-center">
+          <div className="home__categories">
+            <span className="home__categories-title">
               Quick Categories
             </span>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="home__categories-list">
               {categories.map((cat) => (
                 <button
                   key={cat.name}
                   onClick={() => handleCategoryClick(cat.name)}
-                  className="bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-300 text-gray-700 hover:text-orange-700 font-semibold px-4 py-2 rounded-full text-xs flex items-center gap-2 cursor-pointer shadow-xs transition"
+                  className="home__category-btn"
                 >
-                  <span className="text-base">{cat.emoji}</span>
+                  <span className="home__category-emoji">{cat.emoji}</span>
                   <span>{cat.name}</span>
                 </button>
               ))}
@@ -129,21 +130,21 @@ const HomePage = () => {
       </section>
 
       {/* Featured Restaurants Section */}
-      <section className="py-10 max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-end mb-6">
+      <section className="home__restaurants">
+        <div className="home__restaurants-header">
           <div>
-            <h2 className="text-lg font-bold text-gray-900 m-0">Featured Restaurants</h2>
-            <p className="text-xs text-gray-500 m-0 mt-1">Eateries registered in the MERN database system</p>
+            <h2 className="home__restaurants-title">Featured Restaurants</h2>
+            <p className="home__restaurants-subtitle">Eateries registered in the MERN database system</p>
           </div>
-          <Link to="/restaurants" className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-1.5 px-4 rounded text-xs no-underline border border-gray-300">
+          <Link to="/restaurants" className="home__restaurants-link">
             View All
           </Link>
         </div>
 
         {restaurants.length === 0 ? (
-          <p className="text-center text-xs text-gray-400 py-8 bg-white border border-gray-200 rounded p-6 shadow-sm">No restaurants found in database.</p>
+          <p className="home__no-restaurants">No restaurants found in database.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="home__restaurants-grid">
             {restaurants.map((restaurant) => (
               <RestaurantCard key={restaurant._id} restaurant={restaurant} />
             ))}
@@ -153,14 +154,14 @@ const HomePage = () => {
 
       {/* Top Rated Items Section */}
       {items.length > 0 && (
-        <section className="py-10 bg-white border-t border-b border-gray-200">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-8">
-              <h2 className="text-lg font-bold text-gray-900 m-0">Popular Customer Choices</h2>
-              <p className="text-xs text-gray-500 m-0 mt-1">Gourmet delicacies ordered and highly rated by users</p>
+        <section className="home__items">
+          <div className="home__items-container">
+            <div className="home__items-header">
+              <h2 className="home__items-title">Popular Customer Choices</h2>
+              <p className="home__items-subtitle">Gourmet delicacies ordered and highly rated by users</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="home__items-grid">
               {items.map((item) => (
                 <ItemCard key={item._id} item={item} />
               ))}

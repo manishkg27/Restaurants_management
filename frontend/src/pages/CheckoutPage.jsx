@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./CheckoutPage.css";
 import { useCart } from "../context/CartContext";
 import { placeOrder } from "../api/orderAPI";
 import { checkoutOrder, verifyPayment } from "../api/paymentAPI";
@@ -124,30 +125,30 @@ const CheckoutPage = () => {
   if (loading) return <LoadingSpinner fullPage />;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-4xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="checkout-page">
+      <div className="checkout-page__container">
         {/* Delivery Details Form */}
         <form
           onSubmit={handleCheckoutSubmit}
-          className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4"
+          className="checkout-page__form"
         >
-          <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-2">
-            <ClipboardList size={18} className="text-orange-600" />
-            <h3 className="text-sm font-bold text-gray-800 m-0">
+          <div className="checkout-page__form-header">
+            <ClipboardList size={18} className="checkout-page__form-icon" />
+            <h3 className="checkout-page__form-title">
               Delivery Details
             </h3>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700" htmlFor="name">
+          <div className="checkout-page__form-group">
+            <label className="checkout-page__label" htmlFor="name">
               Recipient Name
             </label>
-            <div className="relative">
-              <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="checkout-page__input-wrapper">
+              <User size={14} className="checkout-page__input-icon" />
               <input
                 id="name"
                 type="text"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+                className="checkout-page__input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
@@ -156,16 +157,16 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700" htmlFor="phone">
+          <div className="checkout-page__form-group">
+            <label className="checkout-page__label" htmlFor="phone">
               Contact Number
             </label>
-            <div className="relative">
-              <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="checkout-page__input-wrapper">
+              <Phone size={14} className="checkout-page__input-icon" />
               <input
                 id="phone"
                 type="tel"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+                className="checkout-page__input"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
@@ -174,15 +175,15 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-700" htmlFor="address">
+          <div className="checkout-page__form-group">
+            <label className="checkout-page__label" htmlFor="address">
               Delivery Address
             </label>
-            <div className="relative">
-              <MapPin size={14} className="absolute left-3 top-3 text-gray-400" />
+            <div className="checkout-page__input-wrapper">
+              <MapPin size={14} className="checkout-page__input-icon checkout-page__input-icon--textarea" />
               <textarea
                 id="address"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 resize-none bg-white"
+                className="checkout-page__textarea"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter complete house/office street address, landmarks..."
@@ -192,41 +193,41 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 rounded text-sm flex items-center justify-center gap-2 cursor-pointer border-none mt-2">
+          <button type="submit" className="checkout-page__button">
             <CreditCard size={15} />
             Pay & Confirm Order
           </button>
         </form>
 
         {/* Order Summary */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 h-fit flex flex-col gap-4">
-          <h3 className="text-sm font-bold text-gray-800 border-b border-gray-200 pb-3 m-0">
+        <div className="checkout-page__summary">
+          <h3 className="checkout-page__summary-title">
             Order Summary
           </h3>
 
           {restaurantName && (
-            <div className="text-xs text-gray-500">
-              Ordering from: <strong className="text-orange-600">{restaurantName}</strong>
+            <div className="checkout-page__summary-restaurant">
+              Ordering from: <strong>{restaurantName}</strong>
             </div>
           )}
 
           {/* List items */}
-          <div className="flex flex-col gap-3 max-h-60 overflow-y-auto pr-1">
+          <div className="checkout-page__summary-items">
             {cartItems.map((item) => (
-              <div key={item._id} className="flex justify-between text-xs">
-                <span className="text-gray-700">
-                  {item.itemInfo.name} <strong className="text-gray-400">x {item.quantity}</strong>
+              <div key={item._id} className="checkout-page__summary-item">
+                <span className="checkout-page__summary-item-name">
+                  {item.itemInfo.name} <strong>x {item.quantity}</strong>
                 </span>
-                <span className="text-orange-600 font-bold">
+                <span className="checkout-page__summary-item-price">
                   {formatCurrency(item.itemInfo.price * item.quantity)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-gray-200 pt-4 flex justify-between items-center mt-2">
-            <span className="text-xs font-bold text-gray-600">Grand Total:</span>
-            <span className="text-base font-extrabold text-orange-600">
+          <div className="checkout-page__summary-total-container">
+            <span className="checkout-page__summary-total-label">Grand Total:</span>
+            <span className="checkout-page__summary-total-value">
               {formatCurrency(cartTotal)}
             </span>
           </div>

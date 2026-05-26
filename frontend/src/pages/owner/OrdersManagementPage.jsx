@@ -3,7 +3,8 @@ import { getRestaurantOrders, updateDeliveryStatus } from "../../api/orderAPI";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import formatCurrency from "../../utils/formatCurrency";
 import { toast } from "react-toastify";
-import { ClipboardList, User, Phone, MapPin, Edit2, Check, Clock } from "lucide-react";
+import { ClipboardList, User, Phone, MapPin } from "lucide-react";
+import "./OrdersManagementPage.css";
 
 const OrdersManagementPage = () => {
   const [orders, setOrders] = useState([]);
@@ -41,85 +42,49 @@ const OrdersManagementPage = () => {
   if (loading) return <LoadingSpinner fullPage />;
 
   return (
-    <div style={{ minHeight: "80vh", padding: "40px 0" }}>
-      <div className="container" style={{ maxWidth: "900px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "32px" }}>
-          <ClipboardList size={26} style={{ color: "var(--accent)" }} />
-          <h2 style={{ fontSize: "1.8rem", fontWeight: 800, fontFamily: "var(--font-heading)" }}>
+    <div className="orders-mgmt">
+      <div className="container orders-mgmt__container">
+        <div className="orders-mgmt__header">
+          <ClipboardList size={26} className="orders-mgmt__header-icon" />
+          <h2 className="orders-mgmt__title">
             Order Management Panel
           </h2>
         </div>
 
         {orders.length === 0 ? (
-          <div className="glass" style={{ padding: "80px", textAlign: "center", color: "var(--text-muted)", borderRadius: "var(--radius-lg)" }}>
-            <ClipboardList size={40} style={{ marginBottom: "12px", opacity: 0.5 }} />
+          <div className="orders-mgmt__empty">
+            <ClipboardList size={40} className="orders-mgmt__empty-icon" />
             <p>Your restaurant has not received any orders yet.</p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div className="orders-mgmt__list">
             {orders.map((order) => (
-              <div
-                key={order._id}
-                className="glass animate-fade-in"
-                style={{
-                  borderRadius: "var(--radius-md)",
-                  padding: "24px",
-                  border: "1px solid var(--border-glass)",
-                }}
-              >
+              <div key={order._id} className="orders-mgmt__card">
                 {/* Header info */}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: "12px",
-                    borderBottom: "1px solid var(--border-glass)",
-                    paddingBottom: "16px",
-                    marginBottom: "16px",
-                  }}
-                >
+                <div className="orders-mgmt__card-header">
                   <div>
-                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                    <span className="orders-mgmt__order-id">
                       Order #{order._id} • {new Date(order.createdAt).toLocaleString()}
                     </span>
-                    <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "4px" }}>
-                      <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent)", fontFamily: "var(--font-heading)" }}>
+                    <div className="orders-mgmt__price-row">
+                      <div className="orders-mgmt__price">
                         {formatCurrency(order.totalPrice)}
                       </div>
-                      <span
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "var(--radius-full)",
-                          textTransform: "uppercase",
-                          backgroundColor: order.paymentStatus ? "var(--success-glow)" : "var(--error-glow)",
-                          color: order.paymentStatus ? "var(--success)" : "var(--error)",
-                        }}
-                      >
+                      <span className={`orders-mgmt__payment-badge ${order.paymentStatus ? 'orders-mgmt__payment-badge--paid' : 'orders-mgmt__payment-badge--pending'}`}>
                         {order.paymentStatus ? "Paid" : "Payment Pending"}
                       </span>
                     </div>
                   </div>
 
                   {/* Actions Selector */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+                  <div className="orders-mgmt__status-row">
+                    <span className="orders-mgmt__status-label">
                       Delivery Status:
                     </span>
                     <select
                       value={order.deliveryStatus}
                       onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                      className="form-input"
-                      style={{
-                        padding: "6px 12px",
-                        fontSize: "0.85rem",
-                        width: "auto",
-                        height: "36px",
-                        backgroundColor: "var(--bg-primary)",
-                      }}
+                      className="form-input orders-mgmt__status-select"
                     >
                       <option value="pending">Pending</option>
                       <option value="preparing">Preparing</option>
@@ -131,37 +96,37 @@ const OrdersManagementPage = () => {
                 </div>
 
                 {/* Items & Delivery Info */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
+                <div className="orders-mgmt__details-grid">
                   {/* Items */}
                   <div>
-                    <h5 style={{ fontWeight: 700, marginBottom: "8px", fontSize: "0.95rem" }}>Dishes Ordered</h5>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <h5 className="orders-mgmt__section-title">Dishes Ordered</h5>
+                    <div className="orders-mgmt__items-list">
                       {order.items?.map((item, idx) => (
-                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
+                        <div key={idx} className="orders-mgmt__item">
                           <span>
-                            {item.itemName} <strong style={{ color: "var(--text-muted)" }}>x {item.quantity}</strong>
+                            {item.itemName} <strong className="orders-mgmt__item-qty">x {item.quantity}</strong>
                           </span>
-                          <span style={{ fontWeight: 600 }}>{formatCurrency(item.totalPrice)}</span>
+                          <span className="orders-mgmt__item-price">{formatCurrency(item.totalPrice)}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Recipient Details */}
-                  <div style={{ borderLeft: "1px solid var(--border-glass)", paddingLeft: "24px" }}>
-                    <h5 style={{ fontWeight: 700, marginBottom: "8px", fontSize: "0.95rem" }}>Recipient Details</h5>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <User size={14} style={{ color: "var(--accent)" }} />
+                  <div className="orders-mgmt__recipient">
+                    <h5 className="orders-mgmt__section-title">Recipient Details</h5>
+                    <div className="orders-mgmt__recipient-details">
+                      <div className="orders-mgmt__recipient-row">
+                        <User size={14} className="orders-mgmt__recipient-icon" />
                         <span>{order.deliveryInfo?.name}</span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <Phone size={14} style={{ color: "var(--accent)" }} />
+                      <div className="orders-mgmt__recipient-row">
+                        <Phone size={14} className="orders-mgmt__recipient-icon" />
                         <span>{order.deliveryInfo?.phone}</span>
                       </div>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                        <MapPin size={14} style={{ color: "var(--accent)", marginTop: "3px" }} />
-                        <span style={{ lineHeight: 1.4 }}>{order.deliveryInfo?.address}</span>
+                      <div className="orders-mgmt__recipient-row orders-mgmt__recipient-row--align-start">
+                        <MapPin size={14} className="orders-mgmt__recipient-icon orders-mgmt__recipient-icon--top" />
+                        <span className="orders-mgmt__recipient-text">{order.deliveryInfo?.address}</span>
                       </div>
                     </div>
                   </div>

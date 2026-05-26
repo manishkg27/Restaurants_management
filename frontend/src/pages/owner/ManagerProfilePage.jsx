@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { getMyManager, createManager, updateManager } from "../../api/managerAPI";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { UserCheck, Mail, Phone, MapPin, Building, ShieldCheck, Save, ClipboardList } from "lucide-react";
+import { UserCheck, Building, ShieldCheck, Save } from "lucide-react";
+import "./ManagerProfilePage.css";
 
 const ManagerProfilePage = () => {
   const [manager, setManager] = useState(null);
@@ -57,15 +58,7 @@ const ManagerProfilePage = () => {
     setSubmitting(true);
 
     const payload = {
-      name,
-      contact,
-      email,
-      address,
-      bankName,
-      bankBranch,
-      bankIFSC,
-      bankAccount,
-      about,
+      name, contact, email, address, bankName, bankBranch, bankIFSC, bankAccount, about,
     };
 
     try {
@@ -91,34 +84,19 @@ const ManagerProfilePage = () => {
   if (loading) return <LoadingSpinner fullPage />;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-2xl mx-auto">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 sm:p-8 flex flex-col gap-6"
-        >
+    <div className="manager-profile">
+      <div className="manager-profile__container">
+        <form onSubmit={handleSubmit} className="manager-profile__form">
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", borderBottom: "1px solid var(--border-glass)", paddingBottom: "20px" }}>
-            <div
-              style={{
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                backgroundColor: "var(--accent-glow)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--accent)",
-              }}
-            >
+          <div className="manager-profile__header">
+            <div className="manager-profile__icon-wrapper">
               <ShieldCheck size={30} />
             </div>
-
             <div>
-              <h2 style={{ fontSize: "1.6rem", fontWeight: 800, fontFamily: "var(--font-heading)" }}>
+              <h2 className="manager-profile__title">
                 {manager ? "Manage Manager Profile" : "Register Restaurant Manager"}
               </h2>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "2px" }}>
+              <p className="manager-profile__subtitle">
                 Establish administrative and commercial banking details for payouts.
               </p>
             </div>
@@ -126,11 +104,11 @@ const ManagerProfilePage = () => {
 
           {/* Section: Administrative Info */}
           <div>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <UserCheck size={18} style={{ color: "var(--accent)" }} /> Administrative Details
+            <h3 className="manager-profile__section-title">
+              <UserCheck size={18} className="manager-profile__section-icon" /> Administrative Details
             </h3>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+            <div className="manager-profile__grid">
               <div className="form-group">
                 <label className="form-label" htmlFor="mgrName">Manager Name *</label>
                 <input
@@ -158,7 +136,7 @@ const ManagerProfilePage = () => {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+            <div className="manager-profile__grid">
               <div className="form-group">
                 <label className="form-label" htmlFor="mgrEmail">Email Address *</label>
                 <input
@@ -189,24 +167,23 @@ const ManagerProfilePage = () => {
               <label className="form-label" htmlFor="mgrAddress">Full Address *</label>
               <textarea
                 id="mgrAddress"
-                className="form-input"
+                className="form-input manager-profile__textarea"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Full address of the manager..."
                 rows={2}
                 required
-                style={{ resize: "none" }}
               />
             </div>
           </div>
 
           {/* Section: Commercial Banking Details */}
-          <div style={{ borderTop: "1px solid var(--border-glass)", paddingTop: "24px" }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <Building size={18} style={{ color: "var(--accent)" }} /> Payout Banking Details
+          <div className="manager-profile__banking">
+            <h3 className="manager-profile__section-title">
+              <Building size={18} className="manager-profile__section-icon" /> Payout Banking Details
             </h3>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+            <div className="manager-profile__grid">
               <div className="form-group">
                 <label className="form-label" htmlFor="bankName">Bank Name *</label>
                 <input
@@ -234,7 +211,7 @@ const ManagerProfilePage = () => {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+            <div className="manager-profile__grid">
               <div className="form-group">
                 <label className="form-label" htmlFor="bankAccount">Account Number *</label>
                 <input
@@ -263,7 +240,7 @@ const ManagerProfilePage = () => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "14px", gap: "10px" }} disabled={submitting}>
+          <button type="submit" className="btn btn--primary manager-profile__submit" disabled={submitting}>
             <Save size={18} />
             {submitting ? "Saving..." : "Save Manager Details"}
           </button>

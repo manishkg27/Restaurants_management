@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { searchItems } from "../api/itemAPI";
 import ItemCard from "../components/ItemCard";
 import LoadingSpinner from "../components/LoadingSpinner";
+import "./SearchPage.css";
 import { Search, MapPin, SlidersHorizontal } from "lucide-react";
 
 const SearchPage = () => {
@@ -45,29 +46,29 @@ const SearchPage = () => {
   }, [initialQuery]);
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex flex-col gap-8">
+    <div className="search-page">
+      <div className="search-page__container">
+        <div className="search-page__layout">
           {/* Search Filters Card */}
           <form
             onSubmit={handleSearchSubmit}
-            className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4"
+            className="search-page__form"
           >
-            <div className="flex items-center gap-2">
-              <SlidersHorizontal size={16} className="text-orange-600" />
-              <h3 className="text-sm font-bold text-gray-800 m-0">
+            <div className="search-page__form-header">
+              <SlidersHorizontal size={16} className="search-page__form-icon" />
+              <h3 className="search-page__form-title">
                 Refine Search Filters
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-700">Dish Name</label>
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="search-page__form-grid">
+              <div className="search-page__form-group">
+                <label className="search-page__label">Dish Name</label>
+                <div className="search-page__input-wrapper">
+                  <Search size={14} className="search-page__input-icon" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+                    className="search-page__input"
                     value={itemName}
                     onChange={(e) => setItemName(e.target.value)}
                     placeholder="e.g. Pizza, Burger..."
@@ -75,13 +76,13 @@ const SearchPage = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-700">Restaurant Name</label>
-                <div className="relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <div className="search-page__form-group">
+                <label className="search-page__label">Restaurant Name</label>
+                <div className="search-page__input-wrapper">
+                  <Search size={14} className="search-page__input-icon" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+                    className="search-page__input"
                     value={restaurantName}
                     onChange={(e) => setRestaurantName(e.target.value)}
                     placeholder="e.g. Gourmet Hub..."
@@ -89,13 +90,13 @@ const SearchPage = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-700">Location / City</label>
-                <div className="relative">
-                  <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <div className="search-page__form-group">
+                <label className="search-page__label">Location / City</label>
+                <div className="search-page__input-wrapper">
+                  <MapPin size={14} className="search-page__input-icon" />
                   <input
                     type="text"
-                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-xs text-gray-800 outline-none focus:border-blue-500 bg-white"
+                    className="search-page__input"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="e.g. Mumbai, Delhi..."
@@ -104,25 +105,25 @@ const SearchPage = () => {
               </div>
             </div>
 
-            <button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-6 rounded text-xs cursor-pointer border-none self-end mt-2">
+            <button type="submit" className="search-page__button">
               Apply Filters
             </button>
           </form>
 
           {/* Results Grid */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-6">
+            <h2 className="search-page__results-title">
               Search Results
             </h2>
 
             {loading ? (
               <LoadingSpinner />
             ) : items.length === 0 ? (
-              <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-gray-500 text-xs shadow-sm">
+              <div className="search-page__empty">
                 No dishes found matching your search parameters.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              <div className="search-page__results-grid">
                 {items.map((item) => (
                   <ItemCard key={item._id} item={item} />
                 ))}

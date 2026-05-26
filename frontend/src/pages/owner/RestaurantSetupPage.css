@@ -1,0 +1,99 @@
+
+.restaurant-setup {
+  background-color: var(--color-bg-base);
+  min-height: 100vh;
+  padding: 2.5rem 1rem;
+}
+.restaurant-setup__container {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+.restaurant-setup__card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+}
+@media (min-width: 640px) {
+  .restaurant-setup__card {
+    padding: 2rem;
+  }
+}
+.restaurant-setup__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.25rem;
+}
+.restaurant-setup__icon-wrapper {
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.restaurant-setup__title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0;
+}
+.restaurant-setup__subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-block-start: 0.25rem;
+}
+.restaurant-setup__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.restaurant-setup__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+.restaurant-setup__field {
+  margin-bottom: 0;
+}
+.restaurant-setup__input-wrapper {
+  position: relative;
+}
+.restaurant-setup__input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+}
+.restaurant-setup__input-icon--top {
+  top: 1.25rem;
+  transform: none;
+}
+.restaurant-setup__input {
+  padding-inline-start: 2.25rem;
+}
+.restaurant-setup__input--file {
+  padding-block-start: 0.5rem;
+}
+.restaurant-setup__textarea {
+  padding-block-start: 0.875rem;
+  resize: none;
+}
+.restaurant-setup__status-text {
+  font-size: 0.75rem;
+  color: #10b981;
+  margin-block-start: 0.25rem;
+}
+.restaurant-setup__submit {
+  width: 100%;
+  padding: 0.875rem;
+  gap: 0.625rem;
+  margin-block-start: 0.75rem;
+}

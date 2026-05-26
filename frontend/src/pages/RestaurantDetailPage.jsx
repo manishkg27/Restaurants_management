@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { getRestaurantById } from "../api/restaurantAPI";
 import ItemCard from "../components/ItemCard";
 import LoadingSpinner from "../components/LoadingSpinner";
+import "./RestaurantDetailPage.css";
 import { MapPin, Star, Phone, ArrowLeft } from "lucide-react";
 
 const RestaurantDetailPage = () => {
@@ -29,9 +30,9 @@ const RestaurantDetailPage = () => {
   if (loading) return <LoadingSpinner fullPage />;
   if (!restaurant) {
     return (
-      <div className="bg-gray-50 min-h-screen py-20 text-center">
-        <h3 className="text-lg font-bold text-gray-800">Restaurant not found</h3>
-        <Link to="/restaurants" className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-5 rounded text-sm no-underline mt-4 inline-block">
+      <div className="restaurant-detail__not-found">
+        <h3 className="restaurant-detail__not-found-title">Restaurant not found</h3>
+        <Link to="/restaurants" className="restaurant-detail__not-found-link">
           Back to Restaurants
         </Link>
       </div>
@@ -41,54 +42,54 @@ const RestaurantDetailPage = () => {
   const imageUrl = restaurant.restaurantImage || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80";
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-16">
+    <div className="restaurant-detail">
       {/* Simple Flat Header Wrapper */}
-      <div className="bg-white border-b border-gray-200 py-6">
-        <div className="max-w-6xl mx-auto px-4">
+      <div className="restaurant-detail__header-wrapper">
+        <div className="restaurant-detail__container">
           <Link
             to="/restaurants"
-            className="text-orange-600 hover:text-orange-700 font-semibold text-xs flex items-center gap-1 no-underline mb-4"
+            className="restaurant-detail__back-link"
           >
             <ArrowLeft size={14} /> Back to Restaurants List
           </Link>
 
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+          <div className="restaurant-detail__header-content">
             {/* Restaurant Thumbnail */}
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg border border-gray-300 overflow-hidden flex-shrink-0 bg-gray-100">
-              <img src={imageUrl} alt={restaurant.name} className="w-full h-full object-cover" />
+            <div className="restaurant-detail__image-container">
+              <img src={imageUrl} alt={restaurant.name} className="restaurant-detail__image" />
             </div>
 
             {/* Restaurant Info */}
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 m-0">
+            <div className="restaurant-detail__info">
+              <h1 className="restaurant-detail__name">
                 {restaurant.name}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs md:text-sm text-gray-500 font-medium mt-1">
-                <div className="flex items-center gap-1">
-                  <MapPin size={15} className="text-orange-600" />
+              <div className="restaurant-detail__meta">
+                <div className="restaurant-detail__meta-item">
+                  <MapPin size={15} className="restaurant-detail__meta-icon" />
                   <span>
                     {restaurant.location || restaurant.city}, {restaurant.city}
                   </span>
                 </div>
 
                 {restaurant.contactNumber && (
-                  <div className="flex items-center gap-1">
-                    <Phone size={15} className="text-orange-600" />
+                  <div className="restaurant-detail__meta-item">
+                    <Phone size={15} className="restaurant-detail__meta-icon" />
                     <span>{restaurant.contactNumber}</span>
                   </div>
                 )}
 
                 {restaurant.averageRating && (
-                  <div className="flex items-center gap-1">
-                    <Star size={15} fill="#f59e0b" className="text-yellow-500" />
-                    <span className="font-bold text-gray-800">{restaurant.averageRating.toFixed(1)} Rating</span>
+                  <div className="restaurant-detail__meta-item">
+                    <Star size={15} fill="#f59e0b" className="restaurant-detail__star" />
+                    <span className="restaurant-detail__rating-text">{restaurant.averageRating.toFixed(1)} Rating</span>
                   </div>
                 )}
               </div>
 
               {restaurant.description && (
-                <p className="text-xs text-gray-600 mt-2 max-w-2xl leading-relaxed m-0">
+                <p className="restaurant-detail__description">
                   {restaurant.description}
                 </p>
               )}
@@ -98,16 +99,16 @@ const RestaurantDetailPage = () => {
       </div>
 
       {/* Menu Listing Container */}
-      <div className="max-w-6xl mx-auto px-4 mt-8">
+      <div className="restaurant-detail__container restaurant-detail__menu-container">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Our Menu Dishes</h2>
+          <h2 className="restaurant-detail__menu-title">Our Menu Dishes</h2>
 
           {!restaurant.menuItems || restaurant.menuItems.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-10 text-center text-gray-400 text-xs shadow-sm">
+            <div className="restaurant-detail__empty">
               This restaurant has not listed any menu items yet.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <div className="restaurant-detail__grid">
               {restaurant.menuItems.map((item) => (
                 <ItemCard key={item._id} item={item} />
               ))}

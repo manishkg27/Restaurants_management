@@ -2,6 +2,7 @@ import React from "react";
 import { useCart } from "../context/CartContext";
 import { Plus, Minus, Trash2 } from "lucide-react";
 import formatCurrency from "../utils/formatCurrency";
+import "./CartItem.css";
 
 const CartItem = ({ item }) => {
   const { updateQty, removeItem } = useCart();
@@ -21,42 +22,42 @@ const CartItem = ({ item }) => {
   const imageUrl = item.itemInfo.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=100&q=80";
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-gray-100">
+    <div className="cart-item">
       <img
         src={imageUrl}
         alt={item.itemInfo.name}
-        className="w-10 h-10 object-cover rounded border border-gray-200"
+        className="cart-item__image"
       />
 
-      <div className="flex-grow min-w-0">
-        <h5 className="text-xs font-bold text-gray-800 m-0 truncate">
+      <div className="cart-item__details">
+        <h5 className="cart-item__name">
           {item.itemInfo.name}
         </h5>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs font-bold text-orange-600">
+        <div className="cart-item__price-wrap">
+          <span className="cart-item__price">
             {formatCurrency(item.itemInfo.price)}
           </span>
-          <span className="text-xxs text-gray-400">
+          <span className="cart-item__qty-text">
             x {item.quantity}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="cart-item__actions">
         {/* Quantity Controls */}
-        <div className="flex items-center border border-gray-300 rounded bg-gray-50 overflow-hidden">
+        <div className="cart-item__qty-controls">
           <button
             onClick={handleDecrease}
-            className="bg-transparent border-none cursor-pointer p-1 text-gray-500 hover:bg-gray-200 flex items-center justify-center"
+            className="cart-item__qty-btn"
           >
             <Minus size={10} />
           </button>
-          <span className="px-1.5 text-xs font-bold min-w-[14px] text-center text-gray-700">
+          <span className="cart-item__qty-value">
             {item.quantity}
           </span>
           <button
             onClick={handleIncrease}
-            className="bg-transparent border-none cursor-pointer p-1 text-gray-500 hover:bg-gray-200 flex items-center justify-center"
+            className="cart-item__qty-btn"
           >
             <Plus size={10} />
           </button>
@@ -65,7 +66,7 @@ const CartItem = ({ item }) => {
         {/* Delete button */}
         <button
           onClick={() => removeItem(item._id)}
-          className="bg-transparent border-none cursor-pointer text-red-500 hover:bg-red-50 p-1.5 rounded flex items-center justify-center"
+          className="cart-item__remove-btn"
           title="Remove Item"
         >
           <Trash2 size={13} />

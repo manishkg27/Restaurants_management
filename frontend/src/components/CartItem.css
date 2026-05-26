@@ -1,0 +1,105 @@
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cart-item__image {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.cart-item__details {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.cart-item__name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-base);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item__price-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: 0.25rem;
+}
+
+.cart-item__price {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.cart-item__qty-text {
+  font-size: 0.65rem;
+  color: var(--color-text-light);
+}
+
+.cart-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.cart-item__qty-controls {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-base);
+  overflow: hidden;
+}
+
+.cart-item__qty-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+}
+
+.cart-item__qty-btn:hover {
+  background-color: var(--color-border);
+}
+
+.cart-item__qty-value {
+  padding-inline: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 14px;
+  text-align: center;
+  color: var(--color-text-base);
+}
+
+.cart-item__remove-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-danger);
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+}
+
+.cart-item__remove-btn:hover {
+  background-color: #fef2f2;
+}

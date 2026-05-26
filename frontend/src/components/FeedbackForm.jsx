@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import StarRating from "./StarRating";
 import { submitFeedback } from "../api/feedbackAPI";
 import { toast } from "react-toastify";
+import "./FeedbackForm.css";
 
 const FeedbackForm = ({ itemId, onSuccess = null }) => {
   const [rating, setRating] = useState(5);
@@ -31,13 +32,13 @@ const FeedbackForm = ({ itemId, onSuccess = null }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="glass" style={{ padding: "20px", borderRadius: "var(--radius-md)" }}>
-      <h4 style={{ fontFamily: "var(--font-heading)", marginBottom: "12px", fontSize: "1.1rem" }}>
+    <form onSubmit={handleSubmit} className="feedback-form">
+      <h4 className="feedback-form__title">
         Review this item
       </h4>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-        <span style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontWeight: 500 }}>Rating:</span>
+      <div className="feedback-form__rating-row">
+        <span className="feedback-form__rating-label">Rating:</span>
         <StarRating rating={rating} onChange={setRating} size={22} />
       </div>
 
@@ -47,16 +48,15 @@ const FeedbackForm = ({ itemId, onSuccess = null }) => {
         </label>
         <textarea
           id="comment"
-          className="form-input"
+          className="form-input feedback-form__textarea"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="What did you like or dislike about this dish?"
           rows={3}
-          style={{ resize: "none", height: "auto" }}
         />
       </div>
 
-      <button type="submit" className="btn btn-primary" style={{ width: "100%" }} disabled={submitting}>
+      <button type="submit" className="btn btn--primary feedback-form__submit-btn" disabled={submitting}>
         {submitting ? "Submitting..." : "Submit Review"}
       </button>
     </form>

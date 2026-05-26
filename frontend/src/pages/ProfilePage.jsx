@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import "./ProfilePage.css";
 import { useAuth } from "../context/AuthContext";
 import { updateUserProfile } from "../api/managerAPI";
 import { toast } from "react-toastify";
@@ -47,34 +48,34 @@ const ProfilePage = () => {
   if (!user) return <LoadingSpinner fullPage />;
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white border border-gray-200 rounded-lg shadow-sm p-8 mx-auto">
+    <div className="profile-page">
+      <div className="profile-page__container">
         {/* Header */}
-        <div className="flex items-center gap-3 pb-4 mb-6 border-b border-gray-200">
-          <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center flex-shrink-0">
+        <div className="profile-page__header">
+          <div className="profile-page__avatar">
             <UserCheck size={22} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 m-0">
+            <h2 className="profile-page__title">
               User Profile
             </h2>
-            <p className="text-xs text-gray-500 mt-1 m-0">
-              Username: <strong className="text-gray-800">{user.username}</strong> ({user.role})
+            <p className="profile-page__subtitle">
+              Username: <strong>{user.username}</strong> ({user.role})
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-gray-700" htmlFor="fullName">
+        <form onSubmit={handleSubmit} className="profile-page__form">
+          <div className="profile-page__form-group">
+            <label className="profile-page__label" htmlFor="fullName">
               Full Name
             </label>
-            <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="profile-page__input-wrapper">
+              <User size={16} className="profile-page__input-icon" />
               <input
                 id="fullName"
                 type="text"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm text-gray-800 outline-none focus:border-blue-500"
+                className="profile-page__input"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="e.g. John Doe"
@@ -83,16 +84,16 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-gray-700" htmlFor="phone">
+          <div className="profile-page__form-group">
+            <label className="profile-page__label" htmlFor="phone">
               Phone Number
             </label>
-            <div className="relative">
-              <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="profile-page__input-wrapper">
+              <Phone size={16} className="profile-page__input-icon" />
               <input
                 id="phone"
                 type="tel"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm text-gray-800 outline-none focus:border-blue-500"
+                className="profile-page__input"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
@@ -101,15 +102,15 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-gray-700" htmlFor="address">
+          <div className="profile-page__form-group">
+            <label className="profile-page__label" htmlFor="address">
               Primary Delivery Address
             </label>
-            <div className="relative">
-              <MapPin size={16} className="absolute left-3 top-3 text-gray-400" />
+            <div className="profile-page__input-wrapper">
+              <MapPin size={16} className="profile-page__input-icon profile-page__input-icon--textarea" />
               <textarea
                 id="address"
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm text-gray-800 outline-none focus:border-blue-500 resize-none"
+                className="profile-page__textarea"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Flat No, building street name, location details..."
@@ -121,7 +122,7 @@ const ProfilePage = () => {
 
           <button
             type="submit"
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded text-sm flex items-center justify-center gap-2 cursor-pointer border-none mt-2"
+            className="profile-page__button"
             disabled={submitting}
           >
             <Save size={16} />
