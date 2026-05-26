@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getMyRestaurant, createRestaurant, updateRestaurant } from "../../api/restaurantAPI";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { Store, MapPin, Phone, FileText, Image as ImageIcon, Save } from "lucide-react";
+import { Store, MapPin, Phone, Image as ImageIcon, Save, User, Mail, Clock, Globe, Map } from "lucide-react";
 import "./RestaurantSetupPage.css";
 
 const RestaurantSetupPage = () => {
@@ -13,8 +13,18 @@ const RestaurantSetupPage = () => {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [location, setLocation] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [description, setDescription] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("India");
+  const [pinCode, setPinCode] = useState("");
+  const [restaurantContact, setRestaurantContact] = useState("");
+  
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
+  const [ownerContact, setOwnerContact] = useState("");
+  
+  const [openTime, setOpenTime] = useState("");
+  const [closeTime, setCloseTime] = useState("");
+
   const [restaurantImage, setRestaurantImage] = useState(null);
   const [menuImage, setMenuImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -28,8 +38,15 @@ const RestaurantSetupPage = () => {
         setName(rest.name || "");
         setCity(rest.city || "");
         setLocation(rest.location || "");
-        setContactNumber(rest.contactNumber || "");
-        setDescription(rest.description || "");
+        setState(rest.state || "");
+        setCountry(rest.country || "India");
+        setPinCode(rest.pinCode || "");
+        setRestaurantContact(rest.restaurantContact || "");
+        setOwnerName(rest.ownerName || "");
+        setOwnerEmail(rest.ownerEmail || "");
+        setOwnerContact(rest.ownerContact || "");
+        setOpenTime(rest.openTime || "");
+        setCloseTime(rest.closeTime || "");
       }
     } catch (error) {
       console.log("No existing restaurant found (user is likely first-time owner).");
@@ -44,7 +61,11 @@ const RestaurantSetupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !city || !location || !contactNumber) {
+    if (
+      !name || !city || !location || !state || !country || !pinCode ||
+      !restaurantContact || !ownerName || !ownerEmail || !ownerContact ||
+      !openTime || !closeTime
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -55,8 +76,15 @@ const RestaurantSetupPage = () => {
     formData.append("name", name);
     formData.append("city", city);
     formData.append("location", location);
-    formData.append("contactNumber", contactNumber);
-    formData.append("description", description);
+    formData.append("state", state);
+    formData.append("country", country);
+    formData.append("pinCode", pinCode);
+    formData.append("restaurantContact", restaurantContact);
+    formData.append("ownerName", ownerName);
+    formData.append("ownerEmail", ownerEmail);
+    formData.append("ownerContact", ownerContact);
+    formData.append("openTime", openTime);
+    formData.append("closeTime", closeTime);
 
     if (restaurantImage) formData.append("restaurantImage", restaurantImage);
     if (menuImage) formData.append("menuImage", menuImage);
@@ -142,6 +170,40 @@ const RestaurantSetupPage = () => {
 
             <div className="restaurant-setup__grid">
               <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="state">State *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Map size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="state"
+                    type="text"
+                    className="form-input restaurant-setup__input"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    placeholder="e.g. Maharashtra"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="country">Country *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Globe size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="country"
+                    type="text"
+                    className="form-input restaurant-setup__input"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    placeholder="e.g. India"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="restaurant-setup__grid">
+              <div className="form-group restaurant-setup__field" style={{ gridColumn: '1 / -1' }}>
                 <label className="form-label" htmlFor="location">Full Location Details *</label>
                 <div className="restaurant-setup__input-wrapper">
                   <MapPin size={16} className="restaurant-setup__input-icon" />
@@ -156,17 +218,35 @@ const RestaurantSetupPage = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            <div className="restaurant-setup__grid">
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="pinCode">Pin Code *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <MapPin size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="pinCode"
+                    type="text"
+                    className="form-input restaurant-setup__input"
+                    value={pinCode}
+                    onChange={(e) => setPinCode(e.target.value)}
+                    placeholder="e.g. 400050"
+                    required
+                  />
+                </div>
+              </div>
 
               <div className="form-group restaurant-setup__field">
-                <label className="form-label" htmlFor="contactNumber">Contact Number *</label>
+                <label className="form-label" htmlFor="restaurantContact">Restaurant Contact *</label>
                 <div className="restaurant-setup__input-wrapper">
                   <Phone size={16} className="restaurant-setup__input-icon" />
                   <input
-                    id="contactNumber"
+                    id="restaurantContact"
                     type="tel"
                     className="form-input restaurant-setup__input"
-                    value={contactNumber}
-                    onChange={(e) => setContactNumber(e.target.value)}
+                    value={restaurantContact}
+                    onChange={(e) => setRestaurantContact(e.target.value)}
                     placeholder="e.g. 022 12345678"
                     required
                   />
@@ -174,20 +254,95 @@ const RestaurantSetupPage = () => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="description">About / Cuisine Description</label>
-              <div className="restaurant-setup__input-wrapper">
-                <FileText size={16} className="restaurant-setup__input-icon restaurant-setup__input-icon--top" />
-                <textarea
-                  id="description"
-                  className="form-input restaurant-setup__input restaurant-setup__textarea"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell customers about your kitchen specialities, ambience or delivery options..."
-                  rows={4}
-                />
+            <h3 className="restaurant-setup__section-title" style={{ marginTop: '20px', marginBottom: '10px', borderBottom: '1px solid #333', paddingBottom: '5px' }}>Owner Details</h3>
+
+            <div className="restaurant-setup__grid">
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="ownerName">Owner Name *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <User size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="ownerName"
+                    type="text"
+                    className="form-input restaurant-setup__input"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    placeholder="e.g. John Doe"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="ownerEmail">Owner Email *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Mail size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="ownerEmail"
+                    type="email"
+                    className="form-input restaurant-setup__input"
+                    value={ownerEmail}
+                    onChange={(e) => setOwnerEmail(e.target.value)}
+                    placeholder="e.g. owner@example.com"
+                    required
+                  />
+                </div>
               </div>
             </div>
+
+            <div className="restaurant-setup__grid">
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="ownerContact">Owner Contact *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Phone size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="ownerContact"
+                    type="tel"
+                    className="form-input restaurant-setup__input"
+                    value={ownerContact}
+                    onChange={(e) => setOwnerContact(e.target.value)}
+                    placeholder="e.g. +91 9999999999"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <h3 className="restaurant-setup__section-title" style={{ marginTop: '20px', marginBottom: '10px', borderBottom: '1px solid #333', paddingBottom: '5px' }}>Operating Hours</h3>
+
+            <div className="restaurant-setup__grid">
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="openTime">Opening Time *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Clock size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="openTime"
+                    type="time"
+                    className="form-input restaurant-setup__input"
+                    value={openTime}
+                    onChange={(e) => setOpenTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group restaurant-setup__field">
+                <label className="form-label" htmlFor="closeTime">Closing Time *</label>
+                <div className="restaurant-setup__input-wrapper">
+                  <Clock size={16} className="restaurant-setup__input-icon" />
+                  <input
+                    id="closeTime"
+                    type="time"
+                    className="form-input restaurant-setup__input"
+                    value={closeTime}
+                    onChange={(e) => setCloseTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <h3 className="restaurant-setup__section-title" style={{ marginTop: '20px', marginBottom: '10px', borderBottom: '1px solid #333', paddingBottom: '5px' }}>Images</h3>
 
             <div className="restaurant-setup__grid">
               <div className="form-group restaurant-setup__field">
@@ -225,7 +380,7 @@ const RestaurantSetupPage = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn--primary restaurant-setup__submit" disabled={submitting}>
+            <button type="submit" className="btn btn--primary restaurant-setup__submit" disabled={submitting} style={{ marginTop: '20px' }}>
               <Save size={18} />
               {submitting ? "Saving..." : "Save Restaurant Info"}
             </button>
