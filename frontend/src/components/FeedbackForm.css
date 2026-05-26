@@ -1,0 +1,36 @@
+.feedback-form {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.feedback-form__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-base);
+  margin-bottom: var(--spacing-sm);
+}
+
+.feedback-form__rating-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.feedback-form__rating-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.feedback-form__textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+.feedback-form__submit-btn {
+  width: 100%;
+}

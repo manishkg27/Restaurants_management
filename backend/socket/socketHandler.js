@@ -1,13 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User"); // Adjust this path based on your folder structure
 
-const initializeSocket = (server) => {
-  const io = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL || "*",
-      methods: ["GET", "POST"],
-    },
-  });
+const initializeSocket = (io) => {
 
   // ✅ Completed Phase 8 Authentication Middleware
   io.use(async (socket, next) => {

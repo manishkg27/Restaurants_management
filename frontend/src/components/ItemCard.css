@@ -1,0 +1,122 @@
+.item-card {
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.item-card__image-wrapper {
+  width: 5rem; /* 80px */
+  height: 5rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: var(--color-bg-base);
+}
+
+.item-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-card__content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+.item-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.item-card__name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-base);
+  margin: 0;
+}
+
+.item-card__price {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.item-card__description {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  margin-top: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+}
+
+.item-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.item-card__rating-value {
+  font-weight: 700;
+  color: var(--color-text-base);
+}
+
+.item-card__no-rating {
+  font-size: 0.65rem;
+  color: var(--color-text-light);
+}
+
+.item-card__btn {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color var(--transition-fast);
+}
+
+.item-card__btn--add {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.item-card__btn--add:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.item-card__btn--in-cart {
+  background-color: #f0fdf4; /* green-50 */
+  color: #15803d; /* green-700 */
+  border-color: #86efac; /* green-300 */
+}
+
+.item-card__btn--in-cart:hover {
+  background-color: #dcfce7; /* green-100 */
+}
