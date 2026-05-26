@@ -1,0 +1,95 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { login as apiLogin, getProfile, logout as apiLogout } from "../api/authAPI";
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("eatify_token"));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const bootstrapAuth = async () => {
+      if (token) {
+        try {
+          const profileResponse = await getProfile();
+          if (profileResponse.success) {
+            setUser(profileResponse.data);
+          } else {
+            // Clean up invalid token
+            localStorage.removeItem("eatify_token");
+            setToken(null);
+            setUser(null);
+          }
+        } catch (error) {
+          console.error("Bootstrap auth failed:", error);
+          localStorage.removeItem("eatify_token");
+          setToken(null);
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    bootstrapAuth();
+  }, [token]);
+
+  const login = async (credentials) => {
+    setLoading(true);
+    try {
+      const response = await apiLogin(credentials);
+      if (response.success && response.data) {
+        const { token: userToken, ...userData } = response.data;
+        localStorage.setItem("eatify_token", userToken);
+        setToken(userToken);
+        setUser(userData);
+        return { success: true, message: response.message };
+      }
+      return { success: false, message: response.message || "Failed to login" };
+    } catch (error) {
+      console.error("Login failed:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Invalid credentials",
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await apiLogout();
+    } catch (error) {
+      console.error("API logout error:", error);
+    } finally {
+      localStorage.removeItem("eatify_token");
+      setToken(null);
+      setUser(null);
+    }
+  };
+
+  const isOwner = () => {
+    return user && user.role === "owner";
+  };
+
+  const value = {
+    user,
+    token,
+    loading,
+    login,
+    logout,
+    isOwner,
+    setUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
