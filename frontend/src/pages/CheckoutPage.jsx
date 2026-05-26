@@ -3,6 +3,7 @@ import "./CheckoutPage.css";
 import { useCart } from "../context/CartContext";
 import { placeOrder } from "../api/orderAPI";
 import { checkoutOrder, verifyPayment } from "../api/paymentAPI";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import formatCurrency from "../utils/formatCurrency";
@@ -26,12 +27,38 @@ const loadRazorpayScript = () => {
 
 const CheckoutPage = () => {
   const { cartItems, cartTotal, restaurantName, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [useNewAddress, setUseNewAddress] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pinCode, setPinCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!useNewAddress && user) {
+      setName(user.profile?.fullName || user.username || "");
+      setPhone(user.profile?.contactNumber || "");
+      setEmail(user.email || "");
+      setAddress(user.profile?.address || "");
+      setCity(user.profile?.city || "");
+      setState(user.profile?.state || "");
+      setPinCode(user.profile?.zipCode || "");
+    } else if (useNewAddress) {
+      setName("");
+      setPhone("");
+      setAddress("");
+      setCity("");
+      setState("");
+      setPinCode("");
+    }
+  }, [useNewAddress, user]);
 
   useEffect(() => {
     if (cartItems.length === 0 && !loading) {
@@ -42,7 +69,7 @@ const CheckoutPage = () => {
 
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone || !address) {
+    if (!name || !phone || !email || !address || !city || !state || !pinCode) {
       toast.error("Please provide all delivery information");
       return;
     }
@@ -57,7 +84,7 @@ const CheckoutPage = () => {
         return;
       }
 
-      const orderRes = await placeOrder({ name, phone, address });
+      const orderRes = await placeOrder({ name, phone, email, address, city, state, pinCode });
       if (!orderRes.success) {
         toast.error(orderRes.message || "Failed to place order");
         setLoading(false);
@@ -106,6 +133,7 @@ const CheckoutPage = () => {
         },
         prefill: {
           name: name,
+          email: email,
           contact: phone,
         },
         theme: {
@@ -137,6 +165,19 @@ const CheckoutPage = () => {
             <h3 className="checkout-page__form-title">
               Delivery Details
             </h3>
+          </div>
+
+          <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <input
+              type="checkbox"
+              id="useNewAddress"
+              checked={useNewAddress}
+              onChange={(e) => setUseNewAddress(e.target.checked)}
+              style={{ cursor: "pointer" }}
+            />
+            <label htmlFor="useNewAddress" style={{ cursor: "pointer", fontSize: "14px", color: "#ddd" }}>
+              Deliver to a different address
+            </label>
           </div>
 
           <div className="checkout-page__form-group">
@@ -176,6 +217,24 @@ const CheckoutPage = () => {
           </div>
 
           <div className="checkout-page__form-group">
+            <label className="checkout-page__label" htmlFor="email">
+              Email Address
+            </label>
+            <div className="checkout-page__input-wrapper">
+              <User size={14} className="checkout-page__input-icon" />
+              <input
+                id="email"
+                type="email"
+                className="checkout-page__input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="e.g. user@example.com"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="checkout-page__form-group">
             <label className="checkout-page__label" htmlFor="address">
               Delivery Address
             </label>
@@ -187,7 +246,63 @@ const CheckoutPage = () => {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter complete house/office street address, landmarks..."
-                rows={4}
+                rows={3}
+                required
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div className="checkout-page__form-group" style={{ flex: 1 }}>
+              <label className="checkout-page__label" htmlFor="city">
+                City
+              </label>
+              <div className="checkout-page__input-wrapper">
+                <MapPin size={14} className="checkout-page__input-icon" />
+                <input
+                  id="city"
+                  type="text"
+                  className="checkout-page__input"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. Mumbai"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="checkout-page__form-group" style={{ flex: 1 }}>
+              <label className="checkout-page__label" htmlFor="state">
+                State
+              </label>
+              <div className="checkout-page__input-wrapper">
+                <MapPin size={14} className="checkout-page__input-icon" />
+                <input
+                  id="state"
+                  type="text"
+                  className="checkout-page__input"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="e.g. Maharashtra"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="checkout-page__form-group">
+            <label className="checkout-page__label" htmlFor="pinCode">
+              Pin Code
+            </label>
+            <div className="checkout-page__input-wrapper">
+              <MapPin size={14} className="checkout-page__input-icon" />
+              <input
+                id="pinCode"
+                type="text"
+                className="checkout-page__input"
+                value={pinCode}
+                onChange={(e) => setPinCode(e.target.value)}
+                placeholder="e.g. 400050"
                 required
               />
             </div>

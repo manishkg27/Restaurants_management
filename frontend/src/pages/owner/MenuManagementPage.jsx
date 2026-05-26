@@ -140,7 +140,7 @@ const MenuManagementPage = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="description">Short Description</label>
+                <label className="form-label" htmlFor="description">Short Description *</label>
                 <textarea
                   id="description"
                   className="form-input menu-mgmt__textarea"
