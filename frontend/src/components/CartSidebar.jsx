@@ -4,15 +4,27 @@ import CartItem from "./CartItem";
 import { X, ShoppingBag, Trash2 } from "lucide-react";
 import formatCurrency from "../utils/formatCurrency";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 import "./CartSidebar.css";
 
 const CartSidebar = ({ isOpen, onClose }) => {
   const { cartItems, cartTotal, restaurantName, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   if (!isOpen) return null;
 
   const handleCheckoutClick = () => {
+    // Enforce profile completion
+    const p = user?.profile;
+    if (!p || !p.address || !p.city || !p.state || !p.country || !p.zipCode || !p.contactNumber || !p.fullName) {
+      toast.warning("Please complete your profile delivery details to proceed to checkout.", { autoClose: 5000 });
+      onClose();
+      navigate("/profile");
+      return;
+    }
+
     onClose();
     navigate("/checkout");
   };
