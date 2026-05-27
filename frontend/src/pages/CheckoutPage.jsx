@@ -118,9 +118,11 @@ const CheckoutPage = () => {
               navigate("/orders");
             } else {
               toast.error(verificationRes.message || "Payment verification failed");
+              navigate("/orders");
             }
           } catch (error) {
             toast.error(error.response?.data?.message || "Verification failed");
+            navigate("/orders");
           } finally {
             setLoading(false);
           }
@@ -133,9 +135,21 @@ const CheckoutPage = () => {
         theme: {
           color: "#ea580c",
         },
+        modal: {
+          ondismiss: function() {
+            toast.info("Payment cancelled. You can retry from your Orders page.");
+            navigate("/orders");
+          }
+        }
       };
 
       const paymentObject = new window.Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response){
+        toast.error("Payment failed. Please try again from your Orders page.");
+        navigate("/orders");
+      });
+
       paymentObject.open();
     } catch (error) {
       toast.error(error.response?.data?.message || "Error placing order");

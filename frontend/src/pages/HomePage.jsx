@@ -75,10 +75,6 @@ const HomePage = () => {
             </div>
           )}
 
-          <div className="home__badge">
-            <Sparkles size={11} className="home__badge-icon" />
-            <span>Eatify final-year student project template</span>
-          </div>
 
           <h1 className="home__title">
             Find Your Favorite Food

@@ -3,6 +3,7 @@ const OrderItem = require("../models/OrderItem");
 const Cart = require("../models/Cart");
 const Item = require("../models/Item");
 const Restaurant = require("../models/Restaurant");
+const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
 
 // @desc    Place order from cart items
@@ -83,16 +84,6 @@ const placeOrder = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    // Socket.io trigger (Placeholder logic for Phase 8)
-    const io = req.app.get("io");
-    if (io) {
-      io.to(`restaurant_${restaurantId}`).emit("newOrder", {
-        message: `New Order #${order._id} has been placed!`,
-        orderId: order._id,
-        totalPrice: orderTotalPrice,
-      });
-    }
-
     res.status(201).json({
       success: true,
       data: {
@@ -128,7 +119,7 @@ const getMyOrders = async (req, res) => {
       ];
     } else if (statusFilter === "current") {
       matchStage.paymentStatus = true;
-      matchStage.deliveryStatus = { $ne: "delivered" };
+      matchStage.deliveryStatus = { $nin: ["delivered", "cancelled"] };
     }
 
     // Use aggregation to fetch orders + their items + restaurant name
@@ -263,12 +254,25 @@ const updateDeliveryStatus = async (req, res) => {
     // Future: Emit socket to user to notify them of delivery status change
     const io = req.app.get("io");
     if (io) {
-    io.to(`user_${order.user}`).emit("orderStatusUpdate", {
-        orderId: order._id,
-        deliveryStatus: order.deliveryStatus,
-        updatedAt: order.updatedAt,
-        message: `Your order status is now: ${deliveryStatus}`,
-    });
+      let customMessage = `Your order status is now: ${deliveryStatus}`;
+      if (deliveryStatus === "cancelled") {
+        customMessage = "Your order was cancelled due to unforeseen issues. Your money will be credited back to your account within 2-3 working days.";
+      }
+      
+      // Save notification to DB
+      await Notification.create({
+        recipient: order.user,
+        type: "order_update",
+        message: customMessage,
+        relatedOrder: order._id,
+      });
+
+      io.to(`user_${order.user}`).emit("orderStatusUpdate", {
+          orderId: order._id,
+          deliveryStatus: order.deliveryStatus,
+          updatedAt: order.updatedAt,
+          message: customMessage,
+      });
     }
     res.json({
       success: true,
@@ -298,38 +302,42 @@ const getDashboardStats = async (req, res) => {
           _id: null,
           totalOrders: { $sum: 1 },
           
-          // Revenue: Only sum totalPrice IF paymentStatus is true
+          // Revenue: Only sum totalPrice IF paymentStatus is true and deliveryStatus is not cancelled
           totalRevenue: { 
-            $sum: { $cond: [{ $eq: ["$paymentStatus", true] }, "$totalPrice", 0] }
-          },
-          
-          // Pending Orders: Payment is false, OR (payment is true but delivery is NOT "delivered")
-          pendingOrders: {
             $sum: { 
-              $cond: [
-                { $or: [
-                  { $eq: ["$paymentStatus", false] },
-                  { $and: [
-                    { $eq: ["$paymentStatus", true] },
-                    { $ne: ["$deliveryStatus", "delivered"] }
-                  ]}
-                ]},
-                1, 0
-              ]
-            }
-          },
-          
-          // Delivered Orders: Payment is true AND delivery is "delivered"
-          deliveredOrders: {
-            $sum: {
               $cond: [
                 { $and: [
                   { $eq: ["$paymentStatus", true] },
-                  { $eq: ["$deliveryStatus", "delivered"] }
+                  { $ne: ["$deliveryStatus", "cancelled"] }
                 ]},
-                1, 0
-              ]
+                "$totalPrice", 
+                0
+              ] 
             }
+          },
+          
+          // Pending Orders: Payment is false, OR (payment is true but delivery is NOT "delivered" and NOT "cancelled")
+          pendingOrders: {
+            $sum: { 
+              $cond: [
+                { $and: [
+                  { $ne: ["$deliveryStatus", "delivered"] },
+                  { $ne: ["$deliveryStatus", "cancelled"] }
+                ]},
+                1, 
+                0
+              ] 
+            }
+          },
+          
+          // Delivered Orders
+          deliveredOrders: {
+            $sum: { $cond: [{ $eq: ["$deliveryStatus", "delivered"] }, 1, 0] }
+          },
+          
+          // Cancelled Orders
+          cancelledOrders: {
+            $sum: { $cond: [{ $eq: ["$deliveryStatus", "cancelled"] }, 1, 0] }
           }
       }},
       
@@ -339,12 +347,13 @@ const getDashboardStats = async (req, res) => {
           totalOrders: 1,
           totalRevenue: 1,
           pendingOrders: 1,
-          deliveredOrders: 1
+          deliveredOrders: 1,
+          cancelledOrders: 1
       }}
     ]);
 
     // Handle case where restaurant has no orders yet
-    const defaultStats = { totalOrders: 0, totalRevenue: 0, pendingOrders: 0, deliveredOrders: 0 };
+    const defaultStats = { totalOrders: 0, totalRevenue: 0, pendingOrders: 0, deliveredOrders: 0, cancelledOrders: 0 };
 
     res.json({ 
       success: true, 

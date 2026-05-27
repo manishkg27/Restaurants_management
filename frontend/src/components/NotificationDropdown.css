@@ -1,0 +1,155 @@
+.nav-notification {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-notification__btn {
+  background: none;
+  border: none;
+  color: #111827;
+  cursor: pointer;
+  position: relative;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.nav-notification__btn:hover {
+  color: #9ca3af;
+}
+
+.nav-notification__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-notification__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  width: 350px;
+  max-height: 400px;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.nav-notification__header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222;
+}
+
+.nav-notification__header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.nav-notification__mark-all {
+  background: none;
+  border: none;
+  color: #ea580c;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.nav-notification__mark-all:hover {
+  text-decoration: underline;
+}
+
+.nav-notification__list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-notification__empty {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.nav-notification__item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2a2a;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.nav-notification__item:hover {
+  background-color: #2a2a2a;
+}
+
+.nav-notification__item--unread {
+  background-color: rgba(234, 88, 12, 0.05);
+}
+
+.nav-notification__item-icon {
+  margin-top: 2px;
+}
+
+.text-orange {
+  color: #ea580c;
+}
+
+.text-blue {
+  color: #3b82f6;
+}
+
+.nav-notification__item-content {
+  flex: 1;
+}
+
+.nav-notification__item-msg {
+  margin: 0 0 4px 0;
+  font-size: 0.875rem;
+  color: #e5e7eb;
+  line-height: 1.4;
+}
+
+.nav-notification__item-time {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.nav-notification__item-delete {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.nav-notification__item-delete:hover {
+  opacity: 1;
+}

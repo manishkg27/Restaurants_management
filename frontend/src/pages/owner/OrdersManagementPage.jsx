@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getRestaurantOrders, updateDeliveryStatus } from "../../api/orderAPI";
+import { getMyRestaurant } from "../../api/restaurantAPI";
+import { useAuth } from "../../context/AuthContext";
+import useSocket from "../../hooks/useSocket";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import formatCurrency from "../../utils/formatCurrency";
 import { toast } from "react-toastify";
@@ -7,11 +10,21 @@ import { ClipboardList, User, Phone, MapPin } from "lucide-react";
 import "./OrdersManagementPage.css";
 
 const OrdersManagementPage = () => {
+  const { token } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("incoming"); // 'incoming', 'delivered', 'cancelled'
 
-  const fetchOrders = async () => {
+  const socketHook = useSocket(token);
+
+  const fetchOrdersAndRestaurant = async () => {
     try {
+      const resData = await getMyRestaurant();
+      if (resData.success && resData.data) {
+        setRestaurant(resData.data);
+      }
+      
       const response = await getRestaurantOrders();
       if (response.success) {
         setOrders(response.data || []);
@@ -24,15 +37,42 @@ const OrdersManagementPage = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrdersAndRestaurant();
   }, []);
+
+  useEffect(() => {
+    if (restaurant && socketHook.socket) {
+      socketHook.emit("joinRestaurantRoom", { restaurantId: restaurant._id });
+
+      socketHook.listen("newOrder", (data) => {
+        toast.info(data.message || "New order received!", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        
+        fetchOrdersAndRestaurant();
+      });
+    }
+
+    return () => {
+      if (socketHook.socket) {
+        socketHook.stopListening("newOrder");
+      }
+    };
+  }, [restaurant, socketHook.socket]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       const response = await updateDeliveryStatus(orderId, newStatus);
       if (response.success) {
         toast.success(response.message || `Delivery status changed to ${newStatus}`);
-        await fetchOrders();
+        
+        // Update local state instead of full fetch to avoid flicker
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === orderId ? { ...order, deliveryStatus: newStatus } : order
+          )
+        );
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update delivery status");
@@ -51,14 +91,62 @@ const OrdersManagementPage = () => {
           </h2>
         </div>
 
-        {orders.length === 0 ? (
+        {/* Tab Selectors */}
+        <div className="orders-page__tabs" style={{ marginBottom: "2rem", display: "flex", gap: "10px" }}>
+          {[
+            { id: "incoming", label: "Incoming Orders", icon: ClipboardList },
+            { id: "delivered", label: "Delivered", icon: ClipboardList },
+            { id: "cancelled", label: "Cancelled", icon: ClipboardList },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`orders-page__tab-btn ${
+                  isSelected
+                    ? "orders-page__tab-btn--active"
+                    : "orders-page__tab-btn--inactive"
+                }`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  border: "none",
+                  cursor: "pointer",
+                  backgroundColor: isSelected ? "#ea580c" : "#ffffff",
+                  color: isSelected ? "#fff" : "#6b7280",
+                  fontWeight: isSelected ? "600" : "400",
+                }}
+              >
+                <Icon size={14} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {orders.filter(o => {
+          if (activeTab === "incoming") return ["pending", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
+          if (activeTab === "delivered") return o.deliveryStatus === "delivered";
+          if (activeTab === "cancelled") return o.deliveryStatus === "cancelled";
+          return true;
+        }).length === 0 ? (
           <div className="orders-mgmt__empty">
             <ClipboardList size={40} className="orders-mgmt__empty-icon" />
-            <p>Your restaurant has not received any orders yet.</p>
+            <p>No orders found in this category.</p>
           </div>
         ) : (
           <div className="orders-mgmt__list">
-            {orders.map((order) => (
+            {orders.filter(o => {
+              if (activeTab === "incoming") return ["pending", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
+              if (activeTab === "delivered") return o.deliveryStatus === "delivered";
+              if (activeTab === "cancelled") return o.deliveryStatus === "cancelled";
+              return true;
+            }).map((order) => (
               <div key={order._id} className="orders-mgmt__card">
                 {/* Header info */}
                 <div className="orders-mgmt__card-header">
@@ -85,12 +173,13 @@ const OrdersManagementPage = () => {
                       value={order.deliveryStatus}
                       onChange={(e) => handleStatusChange(order._id, e.target.value)}
                       className="form-input orders-mgmt__status-select"
+                      disabled={order.deliveryStatus === 'delivered' || order.deliveryStatus === 'cancelled'}
                     >
-                      <option value="pending">Pending</option>
-                      <option value="preparing">Preparing</option>
-                      <option value="out-for-delivery">Out for Delivery</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
+                      <option value="pending" disabled={order.deliveryStatus !== 'pending'}>Pending</option>
+                      <option value="preparing" disabled={order.deliveryStatus !== 'pending' && order.deliveryStatus !== 'preparing'}>Preparing</option>
+                      <option value="out-for-delivery" disabled={order.deliveryStatus === 'delivered' || order.deliveryStatus === 'cancelled'}>Out for Delivery</option>
+                      <option value="delivered" disabled={order.deliveryStatus === 'cancelled'}>Delivered</option>
+                      <option value="cancelled" disabled={order.deliveryStatus === 'delivered'}>Cancelled</option>
                     </select>
                   </div>
                 </div>

@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // Initialize Socket.io with CORS settings
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   },
 });
@@ -45,6 +45,7 @@ app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/feedback", require("./routes/feedbackRoutes"));
 app.use("/api/managers", require("./routes/managerRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // Global Error Handler (Optional but recommended catch-all)
 app.use((err, req, res, next) => {

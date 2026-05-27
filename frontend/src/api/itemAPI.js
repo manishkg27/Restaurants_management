@@ -18,3 +18,17 @@ export const createItem = async (restaurantId, formData) => {
   });
   return response.data;
 };
+
+export const updateItem = async (itemId, formData) => {
+  const response = await API.put(`/items/${itemId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const deleteItem = async (itemId) => {
+  const response = await API.delete(`/items/${itemId}`);
+  return response.data;
+};

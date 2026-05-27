@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { ShoppingCart, LogOut, User as UserIcon, ChefHat, ClipboardList, LayoutDashboard, Search } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 import "./Navbar.css";
 
 const Navbar = ({ onCartClick }) => {
@@ -84,6 +85,9 @@ const Navbar = ({ onCartClick }) => {
               <Link to="/profile" className="navbar__nav-item">
                 <UserIcon size={16} />
               </Link>
+              
+              <NotificationDropdown />
+
               <button
                 onClick={handleLogout}
                 className="navbar__icon-btn"
@@ -100,6 +104,8 @@ const Navbar = ({ onCartClick }) => {
               <Link to="/profile" className="navbar__nav-item">
                 <UserIcon size={16} />
               </Link>
+
+              <NotificationDropdown />
 
               {/* Cart Button */}
               <button

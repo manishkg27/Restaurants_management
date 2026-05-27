@@ -14,6 +14,7 @@ import "./ManagerProfilePage.css";
 const ManagerProfilePage = () => {
   const [manager, setManager] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Form fields
   const [name, setName] = useState("");
@@ -58,9 +59,11 @@ const ManagerProfilePage = () => {
         setBankIFSC(mgr.bankIFSC || "");
         setBankAccount(mgr.bankAccount || "");
         setAbout(mgr.about || "");
+        setIsEditing(false);
       }
     } catch (error) {
       console.log("No existing manager profile found.");
+      setIsEditing(true);
     } finally {
       setLoading(false);
     }
@@ -112,7 +115,7 @@ const ManagerProfilePage = () => {
         toast.success(response.message || "Saved successfully!");
         setManager(response.data);
         await fetchManager();
-        
+        setIsEditing(false);
         // Redirect to dashboard after a short delay
         setTimeout(() => {
           navigate("/owner/dashboard");
@@ -132,192 +135,227 @@ const ManagerProfilePage = () => {
   return (
     <div className="manager-profile">
       <div className="manager-profile__container">
-        <form onSubmit={handleSubmit} className="manager-profile__form">
-          {/* Header */}
-          <div className="manager-profile__header">
-            <div className="manager-profile__icon-wrapper">
-              <ShieldCheck size={30} />
+        {!isEditing && manager ? (
+          <div className="manager-profile__summary" style={{ textAlign: "center", padding: "40px 20px", backgroundColor: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+            <ShieldCheck size={48} style={{ color: "#ea580c", marginBottom: "16px" }} />
+            <h2 style={{ color: "#111827", marginBottom: "8px" }}>Manager Profile Active</h2>
+            <p style={{ color: "#4b5563", marginBottom: "24px" }}>
+              Your manager details, including banking information for payouts, are currently set up and active.
+            </p>
+            <button
+              className="btn btn--primary"
+              onClick={() => setIsEditing(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <UserCheck size={18} />
+              Edit Details
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="manager-profile__form">
+            {/* Header */}
+            <div className="manager-profile__header">
+              <div className="manager-profile__icon-wrapper">
+                <ShieldCheck size={30} />
+              </div>
+              <div>
+                <h2 className="manager-profile__title">
+                  {manager
+                    ? "Manage Manager Profile"
+                    : "Register Restaurant Manager"}
+                </h2>
+                <p className="manager-profile__subtitle">
+                  Establish administrative and commercial banking details for
+                  payouts.
+                </p>
+              </div>
             </div>
+
+            {/* Section: Administrative Info */}
             <div>
-              <h2 className="manager-profile__title">
-                {manager
-                  ? "Manage Manager Profile"
-                  : "Register Restaurant Manager"}
-              </h2>
-              <p className="manager-profile__subtitle">
-                Establish administrative and commercial banking details for
-                payouts.
-              </p>
-            </div>
-          </div>
+              <h3 className="manager-profile__section-title">
+                <UserCheck
+                  size={18}
+                  className="manager-profile__section-icon"
+                />{" "}
+                Administrative Details
+              </h3>
 
-          {/* Section: Administrative Info */}
-          <div>
-            <h3 className="manager-profile__section-title">
-              <UserCheck size={18} className="manager-profile__section-icon" />{" "}
-              Administrative Details
-            </h3>
+              <div className="manager-profile__grid">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="mgrName">
+                    Manager Name *
+                  </label>
+                  <input
+                    id="mgrName"
+                    type="text"
+                    className="form-input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Robert Baratheon"
+                    required
+                  />
+                </div>
 
-            <div className="manager-profile__grid">
-              <div className="form-group">
-                <label className="form-label" htmlFor="mgrName">
-                  Manager Name *
-                </label>
-                <input
-                  id="mgrName"
-                  type="text"
-                  className="form-input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Robert Baratheon"
-                  required
-                />
+                <div className="form-group">
+                  <label className="form-label" htmlFor="mgrContact">
+                    Contact Number *
+                  </label>
+                  <input
+                    id="mgrContact"
+                    type="tel"
+                    className="form-input"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="e.g. +91 9999999999"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="manager-profile__grid">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="mgrEmail">
+                    Email Address *
+                  </label>
+                  <input
+                    id="mgrEmail"
+                    type="email"
+                    className="form-input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. robert@gourmet.com"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="mgrAbout">
+                    About Description
+                  </label>
+                  <input
+                    id="mgrAbout"
+                    type="text"
+                    className="form-input"
+                    value={about}
+                    onChange={(e) => setAbout(e.target.value)}
+                    placeholder="Additional credentials or roles..."
+                  />
+                </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="mgrContact">
-                  Contact Number *
+                <label className="form-label" htmlFor="mgrAddress">
+                  Full Address *
                 </label>
-                <input
-                  id="mgrContact"
-                  type="tel"
-                  className="form-input"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="e.g. +91 9999999999"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="manager-profile__grid">
-              <div className="form-group">
-                <label className="form-label" htmlFor="mgrEmail">
-                  Email Address *
-                </label>
-                <input
-                  id="mgrEmail"
-                  type="email"
-                  className="form-input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. robert@gourmet.com"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="mgrAbout">
-                  About Description
-                </label>
-                <input
-                  id="mgrAbout"
-                  type="text"
-                  className="form-input"
-                  value={about}
-                  onChange={(e) => setAbout(e.target.value)}
-                  placeholder="Additional credentials or roles..."
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="mgrAddress">
-                Full Address *
-              </label>
-              <textarea
-                id="mgrAddress"
-                className="form-input manager-profile__textarea"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Full address of the manager..."
-                rows={2}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Section: Commercial Banking Details */}
-          <div className="manager-profile__banking">
-            <h3 className="manager-profile__section-title">
-              <Building size={18} className="manager-profile__section-icon" />{" "}
-              Payout Banking Details
-            </h3>
-
-            <div className="manager-profile__grid">
-              <div className="form-group">
-                <label className="form-label" htmlFor="bankName">
-                  Bank Name *
-                </label>
-                <input
-                  id="bankName"
-                  type="text"
-                  className="form-input"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  placeholder="e.g. HDFC Bank"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="bankBranch">
-                  Bank Branch *
-                </label>
-                <input
-                  id="bankBranch"
-                  type="text"
-                  className="form-input"
-                  value={bankBranch}
-                  onChange={(e) => setBankBranch(e.target.value)}
-                  placeholder="e.g. Bandra West, Mumbai"
+                <textarea
+                  id="mgrAddress"
+                  className="form-input manager-profile__textarea"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Full address of the manager..."
+                  rows={2}
                   required
                 />
               </div>
             </div>
 
-            <div className="manager-profile__grid">
-              <div className="form-group">
-                <label className="form-label" htmlFor="bankAccount">
-                  Account Number *
-                </label>
-                <input
-                  id="bankAccount"
-                  type="text"
-                  className="form-input"
-                  value={bankAccount}
-                  onChange={(e) => setBankAccount(e.target.value)}
-                  placeholder="e.g. 50100012345678"
-                  required
-                />
+            {/* Section: Commercial Banking Details */}
+            <div className="manager-profile__banking">
+              <h3 className="manager-profile__section-title">
+                <Building size={18} className="manager-profile__section-icon" />{" "}
+                Payout Banking Details
+              </h3>
+
+              <div className="manager-profile__grid">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="bankName">
+                    Bank Name *
+                  </label>
+                  <input
+                    id="bankName"
+                    type="text"
+                    className="form-input"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    placeholder="e.g. HDFC Bank"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="bankBranch">
+                    Bank Branch *
+                  </label>
+                  <input
+                    id="bankBranch"
+                    type="text"
+                    className="form-input"
+                    value={bankBranch}
+                    onChange={(e) => setBankBranch(e.target.value)}
+                    placeholder="e.g. Bandra West, Mumbai"
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="bankIFSC">
-                  IFSC Code *
-                </label>
-                <input
-                  id="bankIFSC"
-                  type="text"
-                  className="form-input"
-                  value={bankIFSC}
-                  onChange={(e) => setBankIFSC(e.target.value)}
-                  placeholder="e.g. HDFC0000042"
-                  required
-                />
+              <div className="manager-profile__grid">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="bankAccount">
+                    Account Number *
+                  </label>
+                  <input
+                    id="bankAccount"
+                    type="text"
+                    className="form-input"
+                    value={bankAccount}
+                    onChange={(e) => setBankAccount(e.target.value)}
+                    placeholder="e.g. 50100012345678"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="bankIFSC">
+                    IFSC Code *
+                  </label>
+                  <input
+                    id="bankIFSC"
+                    type="text"
+                    className="form-input"
+                    value={bankIFSC}
+                    onChange={(e) => setBankIFSC(e.target.value)}
+                    placeholder="e.g. HDFC0000042"
+                    required
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="btn btn--primary manager-profile__submit"
-            disabled={submitting}
-          >
-            <Save size={18} />
-            {submitting ? "Saving..." : "Save Manager Details"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="btn btn--primary manager-profile__submit"
+              disabled={submitting}
+            >
+              <Save size={18} />
+              {submitting ? "Saving..." : "Save Manager Details"}
+            </button>
+            {manager && (
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={() => setIsEditing(false)}
+                style={{ marginTop: "10px", width: "100%" }}
+              >
+                Cancel
+              </button>
+            )}
+          </form>
+        )}
       </div>
     </div>
   );

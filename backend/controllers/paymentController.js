@@ -2,6 +2,8 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const Order = require("../models/Order");
 const PaymentHistory = require("../models/PaymentHistory");
+const Notification = require("../models/Notification");
+const Restaurant = require("../models/Restaurant");
 
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
@@ -103,6 +105,28 @@ const verifyPayment = async (req, res) => {
         razorpayPaymentId: razorpay_payment_id,
         razorpaySignature: razorpay_signature,
       });
+
+      // 4c. Socket.io trigger and Notification for real-time dashboard updates
+      const restaurantDoc = await Restaurant.findById(order.restaurant);
+      if (restaurantDoc) {
+        const msg = `New Order #${order._id} has been placed!`;
+        
+        await Notification.create({
+          recipient: restaurantDoc.owner,
+          type: "new_order",
+          message: msg,
+          relatedOrder: order._id,
+        });
+
+        const io = req.app.get("io");
+        if (io) {
+          io.to(`restaurant_${order.restaurant}`).emit("newOrder", {
+            message: msg,
+            orderId: order._id,
+            totalPrice: order.totalPrice,
+          });
+        }
+      }
 
       res.json({
         success: true,

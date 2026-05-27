@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { getMyRestaurant } from "../../api/restaurantAPI";
-import { createItem } from "../../api/itemAPI";
+import { createItem, updateItem, deleteItem } from "../../api/itemAPI";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import formatCurrency from "../../utils/formatCurrency";
-import { Store, Plus, X, IndianRupee, FileText, Image as ImageIcon, Save, Check } from "lucide-react";
+import { Store, Plus, X, IndianRupee, FileText, Image as ImageIcon, Save, Check, Edit, Trash2 } from "lucide-react";
 import "./MenuManagementPage.css";
 
 const MenuManagementPage = () => {
@@ -18,6 +18,7 @@ const MenuManagementPage = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editingItemId, setEditingItemId] = useState(null);
 
   const fetchMenu = async () => {
     try {
@@ -52,20 +53,54 @@ const MenuManagementPage = () => {
     if (image) formData.append("image", image);
 
     try {
-      const response = await createItem(restaurant._id, formData);
+      let response;
+      if (editingItemId) {
+        response = await updateItem(editingItemId, formData);
+      } else {
+        response = await createItem(restaurant._id, formData);
+      }
+
       if (response.success) {
-        toast.success(response.message || "Item added successfully!");
-        setShowAddModal(false);
-        setName("");
-        setPrice("");
-        setDescription("");
-        setImage(null);
+        toast.success(response.message || (editingItemId ? "Item updated successfully!" : "Item added successfully!"));
+        closeModal();
         await fetchMenu();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add menu item");
+      toast.error(error.response?.data?.message || (editingItemId ? "Failed to update menu item" : "Failed to add menu item"));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setEditingItemId(null);
+    setName("");
+    setPrice("");
+    setDescription("");
+    setImage(null);
+  };
+
+  const handleEdit = (item) => {
+    setEditingItemId(item._id);
+    setName(item.name);
+    setPrice(item.price);
+    setDescription(item.description || "");
+    setImage(null);
+    setShowAddModal(true);
+  };
+
+  const handleDelete = async (itemId) => {
+    if (window.confirm("Are you sure you want to delete this item?")) {
+      try {
+        const response = await deleteItem(itemId);
+        if (response.success) {
+          toast.success("Item deleted successfully!");
+          await fetchMenu();
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete item");
+      }
     }
   };
 
@@ -102,12 +137,12 @@ const MenuManagementPage = () => {
         {showAddModal && (
           <div className="menu-mgmt__modal-overlay">
             <form onSubmit={handleSubmit} className="menu-mgmt__modal-content">
-              <button type="button" onClick={() => setShowAddModal(false)} className="menu-mgmt__modal-close">
+              <button type="button" onClick={closeModal} className="menu-mgmt__modal-close">
                 <X size={20} />
               </button>
 
               <h3 className="menu-mgmt__modal-title">
-                Add New Dish
+                {editingItemId ? "Edit Dish" : "Add New Dish"}
               </h3>
 
               <div className="form-group">
@@ -202,13 +237,23 @@ const MenuManagementPage = () => {
                     )}
                   </div>
 
-                  <div className="menu-mgmt__card-footer">
-                    <span className="menu-mgmt__card-rating">
-                      Avg Rating: <strong className="menu-mgmt__card-rating-val">{item.averageRating ? item.averageRating.toFixed(1) : "N/A"}</strong>
-                    </span>
-                    <span className="menu-mgmt__badge-active">
-                      Active
-                    </span>
+                  <div className="menu-mgmt__card-footer" style={{ justifyContent: 'space-between' }}>
+                    <div>
+                      <span className="menu-mgmt__card-rating">
+                        Avg Rating: <strong className="menu-mgmt__card-rating-val">{item.averageRating ? item.averageRating.toFixed(1) : "N/A"}</strong>
+                      </span>
+                      <span className="menu-mgmt__badge-active">
+                        Active
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleEdit(item)} className="btn btn--secondary" style={{ padding: '4px 8px', minWidth: 'auto', backgroundColor: '#f0f0f0', color: '#333' }}>
+                        <Edit size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(item._id)} className="btn btn--secondary" style={{ padding: '4px 8px', minWidth: 'auto', backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -79,72 +79,20 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {!isEditing ? (
-          <div className="profile-page__form">
-            <div className="profile-page__form-group">
-              <label className="profile-page__label">Full Name</label>
-              <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "10px" }}>
-                <User size={16} style={{ color: "#aaa" }} />
-                <span>{fullName || "Not provided"}</span>
-              </div>
-            </div>
-
-            <div className="profile-page__form-group">
-              <label className="profile-page__label">Contact Number</label>
-              <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "10px" }}>
-                <Phone size={16} style={{ color: "#aaa" }} />
-                <span>{contactNumber || "Not provided"}</span>
-              </div>
-            </div>
-
-            <div className="profile-page__form-group">
-              <label className="profile-page__label">Delivery Address</label>
-              <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: "10px", alignItems: "flex-start", minHeight: "100px" }}>
-                <MapPin size={16} style={{ color: "#aaa", marginTop: "4px" }} />
-                <span>{address || "Not provided"}</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "15px" }}>
-              <div className="profile-page__form-group" style={{ flex: 1 }}>
-                <label className="profile-page__label">City</label>
-                <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span>{city || "Not provided"}</span>
-                </div>
-              </div>
-
-              <div className="profile-page__form-group" style={{ flex: 1 }}>
-                <label className="profile-page__label">State</label>
-                <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span>{state || "Not provided"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "15px" }}>
-              <div className="profile-page__form-group" style={{ flex: 1 }}>
-                <label className="profile-page__label">Country</label>
-                <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Globe size={16} style={{ color: "#aaa" }} />
-                  <span>{country || "Not provided"}</span>
-                </div>
-              </div>
-
-              <div className="profile-page__form-group" style={{ flex: 1 }}>
-                <label className="profile-page__label">Zip Code</label>
-                <div className="profile-page__input-wrapper" style={{ padding: "12px", backgroundColor: "rgba(255, 255, 255, 0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <span>{zipCode || "Not provided"}</span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="profile-page__button"
+        {!isEditing && user?.profile?.fullName ? (
+          <div className="profile-page__summary" style={{ textAlign: "center", padding: "40px 20px", backgroundColor: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb", marginTop: "20px" }}>
+            <UserCheck size={48} style={{ color: "#ea580c", marginBottom: "16px" }} />
+            <h2 style={{ color: "#111827", marginBottom: "8px" }}>User Profile Active</h2>
+            <p style={{ color: "#4b5563", marginBottom: "24px" }}>
+              Your delivery details and contact information are currently set up.
+            </p>
+            <button 
+              className="btn btn--primary" 
               onClick={() => setIsEditing(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#ea580c", color: "white", padding: "10px 20px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600" }}
             >
-              <Edit size={16} />
-              Update Profile
+              <Edit size={18} />
+              Edit Details
             </button>
           </div>
         ) : (
@@ -290,14 +238,16 @@ const ProfilePage = () => {
                 {submitting ? "Saving..." : "Save Changes"}
               </button>
               
-              <button
-                type="button"
-                className="profile-page__button"
-                onClick={() => setIsEditing(false)}
-                style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', color: '#fff' }}
-              >
-                Cancel
-              </button>
+              {user?.profile?.fullName && (
+                <button
+                  type="button"
+                  className="profile-page__button"
+                  onClick={() => setIsEditing(false)}
+                  style={{ flex: 1, backgroundColor: '#f3f4f6', color: '#111827' }}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         )}

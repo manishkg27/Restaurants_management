@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:8000";
 
 const useSocket = (token) => {
   const socketRef = useRef(null);
+  const [socketInstance, setSocketInstance] = useState(null);
 
   useEffect(() => {
     if (!token) return;
@@ -18,6 +19,7 @@ const useSocket = (token) => {
 
     socketRef.current.on("connect", () => {
       console.log("Socket connected:", socketRef.current.id);
+      setSocketInstance(socketRef.current);
     });
 
     socketRef.current.on("disconnect", () => {
@@ -63,7 +65,7 @@ const useSocket = (token) => {
   };
 
   return {
-    socket: socketRef.current,
+    socket: socketInstance,
     joinRoom,
     listen,
     stopListening,

@@ -52,25 +52,6 @@
   color: var(--color-primary);
 }
 
-.home__badge {
-  background-color: var(--color-bg-base);
-  border: 1px solid var(--color-border);
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.home__badge-icon {
-  color: var(--color-primary);
-}
-
 .home__title {
   font-size: 1.875rem;
   font-weight: 800;

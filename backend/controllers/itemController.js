@@ -114,7 +114,54 @@ const searchItems = async (req, res) => {
   }
 };
 
-// (Additional standard controllers: updateItem, deleteItem, getItemsByRestaurant would follow a similar structure)
-// Note: Keeping it concise; these check for ownership, use findByIdAndUpdate/findByIdAndDelete, etc.
+// @desc    Update menu item
+// @route   PUT /api/items/:itemId
+// @access  Private (Owner)
+const updateItem = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
 
-module.exports = { createItem, getItems, searchItems };
+    const restaurant = await Restaurant.findById(item.restaurant);
+    if (!restaurant || restaurant.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized to update this item" });
+    }
+
+    let imageUrl = item.image;
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(req.file.buffer, "eatify/items");
+    }
+
+    const updatedItem = await Item.findByIdAndUpdate(
+      req.params.itemId,
+      { ...req.body, image: imageUrl },
+      { new: true, runValidators: true }
+    );
+
+    res.json({ success: true, data: updatedItem, message: "Item updated successfully" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Delete menu item
+// @route   DELETE /api/items/:itemId
+// @access  Private (Owner)
+const deleteItem = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.itemId);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+
+    const restaurant = await Restaurant.findById(item.restaurant);
+    if (!restaurant || restaurant.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Not authorized to delete this item" });
+    }
+
+    await item.deleteOne();
+    res.json({ success: true, message: "Item deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { createItem, getItems, searchItems, updateItem, deleteItem };

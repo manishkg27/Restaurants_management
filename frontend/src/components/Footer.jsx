@@ -13,7 +13,7 @@ const Footer = () => {
               <span>Eatify</span>
             </div>
             <p className="footer__desc">
-              Experience the best culinary selections right at your doorstep. A final-year college database project.
+              Experience the best culinary selections right at your doorstep.
             </p>
           </div>
 

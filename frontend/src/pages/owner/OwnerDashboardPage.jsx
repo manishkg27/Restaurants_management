@@ -6,7 +6,15 @@ import useSocket from "../../hooks/useSocket";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import formatCurrency from "../../utils/formatCurrency";
 import { toast } from "react-toastify";
-import { ClipboardList, IndianRupee, Clock, CheckCircle2, Store, Bell } from "lucide-react";
+import { 
+  ClipboardList, 
+  Store, 
+  IndianRupee,
+  Clock,
+  CheckCircle2,
+  Bell,
+  AlertTriangle
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import "./OwnerDashboardPage.css";
 
@@ -83,10 +91,16 @@ const OwnerDashboardPage = () => {
           </div>
 
           <div className="owner-dashboard__banner-actions">
-            <Link to="/owner/menu" className="owner-dashboard__btn owner-dashboard__btn--secondary">
+            <Link
+              to="/owner/menu"
+              className="owner-dashboard__btn owner-dashboard__btn--secondary"
+            >
               Manage Menu
             </Link>
-            <Link to="/owner/orders" className="owner-dashboard__btn owner-dashboard__btn--primary">
+            <Link
+              to="/owner/orders"
+              className="owner-dashboard__btn owner-dashboard__btn--primary"
+            >
               View Orders
             </Link>
           </div>
@@ -145,6 +159,25 @@ const OwnerDashboardPage = () => {
               </h3>
             </div>
           </div>
+
+          {/* Cancelled */}
+          <div className="owner-dashboard__stat-card">
+            <div
+              className="owner-dashboard__stat-icon"
+              style={{ backgroundColor: "#ffffff", color: "#dc2626" }}
+            >
+              <AlertTriangle size={18} />
+            </div>
+            <div className="owner-dashboard__stat-info">
+              <span className="owner-dashboard__stat-label">Cancelled</span>
+              <h3
+                className="owner-dashboard__stat-value"
+                style={{ color: "#dc2626" }}
+              >
+                {stats?.cancelledOrders || 0}
+              </h3>
+            </div>
+          </div>
         </div>
 
         {/* Live Notification Area */}
@@ -156,7 +189,9 @@ const OwnerDashboardPage = () => {
             Real-Time Engine Active
           </h3>
           <p className="owner-dashboard__notification-desc">
-            This dashboard is connected to the backend WebSocket stream. Newly placed customer orders will trigger immediate desktop alerts and automatically refresh metrics.
+            This dashboard is connected to the backend WebSocket stream. Newly
+            placed customer orders will trigger immediate desktop alerts and
+            automatically refresh metrics.
           </p>
         </div>
       </div>

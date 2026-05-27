@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import useSocket from "../hooks/useSocket";
 import "./OrdersPage.css";
 import { getMyOrders, cancelOrder } from "../api/orderAPI";
 import { checkoutOrder, verifyPayment } from "../api/paymentAPI";
@@ -24,10 +26,13 @@ const loadRazorpayScript = () => {
 };
 
 const OrdersPage = () => {
+  const { user, token } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("current"); // 'current', 'payment-pending', 'delivered'
   const [selectedItemForFeedback, setSelectedItemForFeedback] = useState(null);
+
+  const socketHook = useSocket(token);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -46,6 +51,34 @@ const OrdersPage = () => {
   useEffect(() => {
     fetchOrders();
   }, [activeTab]);
+
+  useEffect(() => {
+    if (user && socketHook.socket) {
+      // Join customer's private room
+      socketHook.emit("joinUserRoom", { userId: user._id });
+
+      // Listen for delivery status updates
+      socketHook.listen("orderStatusUpdate", (data) => {
+        toast.info(data.message || `Order status updated to: ${data.deliveryStatus}`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        
+        // Optionally update the local order state if we wanted to avoid a full fetch:
+        setOrders(prevOrders => prevOrders.map(order => 
+          order._id === data.orderId 
+            ? { ...order, deliveryStatus: data.deliveryStatus }
+            : order
+        ));
+      });
+    }
+
+    return () => {
+      if (socketHook.socket) {
+        socketHook.stopListening("orderStatusUpdate");
+      }
+    };
+  }, [user, socketHook.socket]);
 
   return (
     <div className="orders-page">
