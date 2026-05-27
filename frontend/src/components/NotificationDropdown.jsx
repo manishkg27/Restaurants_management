@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, Trash2, CheckCircle, Package } from "lucide-react";
 import { toast } from "react-toastify";
 import {
@@ -13,6 +14,7 @@ import { getMyRestaurant } from "../api/restaurantAPI";
 import "./NotificationDropdown.css";
 
 const NotificationDropdown = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -99,6 +101,24 @@ const NotificationDropdown = () => {
     }
   };
 
+  const handleNotificationClick = async (note, e) => {
+    e.stopPropagation();
+    if (!note.isRead) {
+      try {
+        await markAsRead(note._id);
+        fetchNotes();
+      } catch (error) {
+        console.error("Failed to mark as read", error);
+      }
+    }
+    setIsOpen(false);
+    if (isOwner()) {
+      navigate("/owner/orders");
+    } else {
+      navigate("/orders");
+    }
+  };
+
   const handleMarkAllRead = async (e) => {
     e.stopPropagation();
     try {
@@ -152,9 +172,7 @@ const NotificationDropdown = () => {
                 <div 
                   key={note._id} 
                   className={`nav-notification__item ${!note.isRead ? 'nav-notification__item--unread' : ''}`}
-                  onClick={(e) => {
-                    if (!note.isRead) handleMarkRead(note._id, e);
-                  }}
+                  onClick={(e) => handleNotificationClick(note, e)}
                 >
                   <div className="nav-notification__item-icon">
                     {renderIcon(note.type)}

@@ -39,7 +39,6 @@ const userSchema = new mongoose.Schema(
     },
     profile: {
       fullName: { type: String, default: "", maxlength: 100 },
-      about: { type: String, default: "", maxlength: 500 },
       contactNumber: {
         type: String,
         default: "",

@@ -28,7 +28,6 @@ const restaurantSchema = new mongoose.Schema(
     },
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
-    menuImage: { type: String, default: "" },
     restaurantImage: { type: String, default: "" },
   },
   { timestamps: true },

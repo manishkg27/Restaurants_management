@@ -13,8 +13,10 @@ const Navbar = ({ onCartClick }) => {
   const [navSearch, setNavSearch] = useState("");
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+    if (window.confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/login");
+    }
   };
 
   const handleNavSearchSubmit = (e) => {

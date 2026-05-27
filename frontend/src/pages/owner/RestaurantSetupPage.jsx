@@ -27,7 +27,6 @@ const RestaurantSetupPage = () => {
   const [closeTime, setCloseTime] = useState("");
 
   const [restaurantImage, setRestaurantImage] = useState(null);
-  const [menuImage, setMenuImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchRestaurant = async () => {
@@ -90,7 +89,6 @@ const RestaurantSetupPage = () => {
     formData.append("closeTime", closeTime);
 
     if (restaurantImage) formData.append("restaurantImage", restaurantImage);
-    if (menuImage) formData.append("menuImage", menuImage);
 
     try {
       let response;
@@ -104,7 +102,6 @@ const RestaurantSetupPage = () => {
         toast.success(response.message || "Saved successfully!");
         setRestaurant(response.data);
         setRestaurantImage(null);
-        setMenuImage(null);
         await fetchRestaurant();
         setIsEditing(false);
       }
@@ -467,30 +464,6 @@ const RestaurantSetupPage = () => {
                   {restaurant && restaurant.restaurantImage && (
                     <p className="restaurant-setup__status-text">
                       Image is currently uploaded
-                    </p>
-                  )}
-                </div>
-
-                <div className="form-group restaurant-setup__field">
-                  <label className="form-label" htmlFor="menuImage">
-                    Menu Brochure Image
-                  </label>
-                  <div className="restaurant-setup__input-wrapper">
-                    <ImageIcon
-                      size={16}
-                      className="restaurant-setup__input-icon"
-                    />
-                    <input
-                      id="menuImage"
-                      type="file"
-                      accept="image/*"
-                      className="form-input restaurant-setup__input restaurant-setup__input--file"
-                      onChange={(e) => setMenuImage(e.target.files[0])}
-                    />
-                  </div>
-                  {restaurant && restaurant.menuImage && (
-                    <p className="restaurant-setup__status-text">
-                      Menu brochure is currently uploaded
                     </p>
                   )}
                 </div>

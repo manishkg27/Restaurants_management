@@ -17,6 +17,13 @@ export const getDashboardStats = async () => {
   return response.data;
 };
 
+export const getTransactions = async (searchQuery = "", startDate = "", endDate = "") => {
+  const response = await API.get("/orders/transactions", {
+    params: { search: searchQuery, startDate, endDate },
+  });
+  return response.data;
+};
+
 export const getRestaurantOrders = async () => {
   const response = await API.get("/orders/restaurant-orders");
   return response.data;

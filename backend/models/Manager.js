@@ -28,7 +28,6 @@ const managerSchema = new mongoose.Schema(
     bankBranch: { type: String, required: [true, "Bank branch is required"] },
     bankIFSC: { type: String, required: [true, "IFSC code is required"] },
     bankAccount: { type: String, required: [true, "Bank account is required"] },
-    about: { type: String, default: "", maxlength: 500 },
   },
   {
     timestamps: true,

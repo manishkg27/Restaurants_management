@@ -138,6 +138,7 @@ const CheckoutPage = () => {
         modal: {
           ondismiss: function() {
             toast.info("Payment cancelled. You can retry from your Orders page.");
+            clearCart();
             navigate("/orders");
           }
         }
@@ -147,6 +148,7 @@ const CheckoutPage = () => {
       
       paymentObject.on('payment.failed', function (response){
         toast.error("Payment failed. Please try again from your Orders page.");
+        clearCart();
         navigate("/orders");
       });
 

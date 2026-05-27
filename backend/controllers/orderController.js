@@ -283,6 +283,64 @@ const updateDeliveryStatus = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+// @desc    Get transactions (paid orders) for owner dashboard
+// @route   GET /api/orders/transactions
+// @access  Private (Owner)
+const getTransactions = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findOne({ owner: req.user._id });
+    if (!restaurant) {
+      return res.status(404).json({ success: false, message: 'Restaurant not found' });
+    }
+
+    const { search, startDate, endDate } = req.query;
+
+    let matchStage = {
+      restaurant: restaurant._id,
+      paymentStatus: true
+    };
+
+    if (startDate || endDate) {
+      matchStage.createdAt = {};
+      if (startDate) {
+        matchStage.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        matchStage.createdAt.$lte = end;
+      }
+    }
+
+    if (search) {
+      matchStage.$or = [
+        { "deliveryInfo.name": { $regex: search, $options: "i" } },
+        { $expr: { $regexMatch: { input: { $toString: "$_id" }, regex: search, options: "i" } } }
+      ];
+    }
+
+    const transactions = await Order.aggregate([
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
+      { $limit: 50 },
+      {
+        $project: {
+          _id: 1,
+          "deliveryInfo.name": 1,
+          totalPrice: 1,
+          createdAt: 1,
+          deliveryStatus: 1,
+        }
+      }
+    ]);
+
+    res.json({ success: true, data: transactions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Get aggregated statistics for manager dashboard
 // @route   GET /api/orders/dashboard-stats
 // @access  Private (Owner)
@@ -411,6 +469,7 @@ module.exports = {
   getMyOrders,
   getRestaurantOrders,
   updateDeliveryStatus,
+  getTransactions,
   getDashboardStats,
   cancelOrder,
   payOrder,

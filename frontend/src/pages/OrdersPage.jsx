@@ -59,11 +59,6 @@ const OrdersPage = () => {
 
       // Listen for delivery status updates
       socketHook.listen("orderStatusUpdate", (data) => {
-        toast.info(data.message || `Order status updated to: ${data.deliveryStatus}`, {
-          position: "top-right",
-          autoClose: 5000,
-        });
-        
         // Optionally update the local order state if we wanted to avoid a full fetch:
         setOrders(prevOrders => prevOrders.map(order => 
           order._id === data.orderId 

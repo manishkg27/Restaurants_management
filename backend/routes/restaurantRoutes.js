@@ -11,7 +11,6 @@ const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/uploadMiddleware");
 
 const cpUpload = upload.fields([
-  { name: "menuImage", maxCount: 1 },
   { name: "restaurantImage", maxCount: 1 },
 ]);
 

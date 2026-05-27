@@ -8,6 +8,7 @@ const {
   getDashboardStats,
   cancelOrder,
   payOrder,
+  getTransactions,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -23,6 +24,7 @@ router.patch("/:orderId/pay", payOrder);
 
 // Manager/Owner Routes
 router.get('/dashboard-stats', getDashboardStats); 
+router.get("/transactions", getTransactions);
 router.get("/restaurant-orders", getRestaurantOrders);
 router.patch("/:orderId/delivery", updateDeliveryStatus);
 

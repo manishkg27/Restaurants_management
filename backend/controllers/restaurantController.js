@@ -26,15 +26,9 @@ const createRestaurant = async (req, res) => {
         });
     }
 
-    let menuImageUrl = "",
-      restaurantImageUrl = "";
+    let restaurantImageUrl = "";
 
     if (req.files) {
-      if (req.files.menuImage)
-        menuImageUrl = await uploadToCloudinary(
-          req.files.menuImage[0].buffer,
-          "eatify/restaurants",
-        );
       if (req.files.restaurantImage)
         restaurantImageUrl = await uploadToCloudinary(
           req.files.restaurantImage[0].buffer,
@@ -45,7 +39,6 @@ const createRestaurant = async (req, res) => {
     const restaurant = await Restaurant.create({
       ...req.body,
       owner: req.user._id,
-      menuImage: menuImageUrl,
       restaurantImage: restaurantImageUrl,
     });
 
@@ -144,11 +137,6 @@ const updateRestaurant = async (req, res) => {
     }
 
     if (req.files) {
-      if (req.files.menuImage)
-        req.body.menuImage = await uploadToCloudinary(
-          req.files.menuImage[0].buffer,
-          "eatify/restaurants",
-        );
       if (req.files.restaurantImage)
         req.body.restaurantImage = await uploadToCloudinary(
           req.files.restaurantImage[0].buffer,
