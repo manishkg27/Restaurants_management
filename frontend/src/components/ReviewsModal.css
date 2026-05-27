@@ -1,0 +1,135 @@
+.reviews-modal__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.reviews-modal__panel {
+  background-color: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.reviews-modal__header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fafafa;
+}
+
+.reviews-modal__title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.reviews-modal__close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.reviews-modal__close-btn:hover {
+  background-color: #eee;
+  color: #333;
+}
+
+.reviews-modal__content {
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.reviews-modal__message {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+}
+
+.reviews-modal__message--error {
+  color: #ef4444;
+}
+
+.reviews-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviews-modal__item {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.reviews-modal__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.reviews-modal__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviews-modal__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #ea580c;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviews-modal__username {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.reviews-modal__rating {
+  display: flex;
+  gap: 2px;
+}
+
+.reviews-modal__experience {
+  margin: 0 0 10px 0;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.reviews-modal__date {
+  font-size: 0.8rem;
+  color: #999;
+}

@@ -17,7 +17,7 @@ const FeedbackForm = ({ itemId, onSuccess = null }) => {
     }
     setSubmitting(true);
     try {
-      const response = await submitFeedback({ item: itemId, rating, comment });
+      const response = await submitFeedback({ itemId, rating, experience: comment });
       if (response.success) {
         toast.success(response.message || "Feedback submitted successfully!");
         setComment("");

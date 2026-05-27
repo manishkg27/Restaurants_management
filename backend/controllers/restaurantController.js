@@ -157,7 +157,7 @@ const updateRestaurant = async (req, res) => {
     }
 
     restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     });
     res.json({

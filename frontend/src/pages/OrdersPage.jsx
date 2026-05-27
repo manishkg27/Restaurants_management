@@ -1,10 +1,27 @@
 import React, { useEffect, useState } from "react";
 import "./OrdersPage.css";
-import { getMyOrders } from "../api/orderAPI";
+import { getMyOrders, cancelOrder } from "../api/orderAPI";
+import { checkoutOrder, verifyPayment } from "../api/paymentAPI";
+import { toast } from "react-toastify";
 import LoadingSpinner from "../components/LoadingSpinner";
 import FeedbackForm from "../components/FeedbackForm";
 import formatCurrency from "../utils/formatCurrency";
 import { ClipboardList, Truck, CheckCircle2, AlertCircle } from "lucide-react";
+
+// Helper function to dynamically load Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -100,12 +117,14 @@ const OrdersPage = () => {
                     <span>Status:</span>
                     <span
                       className={`orders-page__status-text ${
+                        order.deliveryStatus === "cancelled" ? "orders-page__status-text--failed" :
+                        order.paymentStatus === false ? "orders-page__status-text--failed" :
                         order.deliveryStatus === "delivered"
                           ? "orders-page__status-text--delivered"
                           : "orders-page__status-text--active"
                       }`}
                     >
-                      {order.deliveryStatus}
+                      {order.deliveryStatus === "cancelled" ? "Cancelled" : order.paymentStatus === false ? "Failed Payment" : order.deliveryStatus}
                     </span>
                   </div>
 
@@ -134,7 +153,101 @@ const OrdersPage = () => {
 
                 {/* Footer Buttons */}
                 <div className="orders-page__actions">
-                  {order.deliveryStatus !== "delivered" ? (
+                  {order.deliveryStatus === "cancelled" ? (
+                    <div style={{width: '100%', textAlign: 'center', color: '#f44336', padding: '10px 0'}}>Order Cancelled</div>
+                  ) : order.paymentStatus === false ? (
+                    <div className="orders-page__payment-actions" style={{ display: 'flex', gap: '10px', width: '100%' }}>
+                      <button
+                        onClick={async () => {
+                          try {
+                            setLoading(true);
+                            const scriptLoaded = await loadRazorpayScript();
+                            if (!scriptLoaded) {
+                              toast.error("Failed to load payment gateway.");
+                              setLoading(false);
+                              return;
+                            }
+
+                            const checkoutRes = await checkoutOrder(order._id);
+                            if (!checkoutRes.success) {
+                              toast.error(checkoutRes.message || "Failed to initiate payment");
+                              setLoading(false);
+                              return;
+                            }
+
+                            const { razorpayOrderId, amount, currency, keyId } = checkoutRes.data;
+
+                            const options = {
+                              key: keyId,
+                              amount: amount,
+                              currency: currency,
+                              name: "Eatify Premium Dining",
+                              description: `Payment for Order #${order._id}`,
+                              order_id: razorpayOrderId,
+                              handler: async function (response) {
+                                try {
+                                  setLoading(true);
+                                  const verificationRes = await verifyPayment({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                  });
+
+                                  if (verificationRes.success) {
+                                    toast.success("Payment verified! Order placed successfully.");
+                                    fetchOrders();
+                                  } else {
+                                    toast.error(verificationRes.message || "Payment verification failed");
+                                  }
+                                } catch (error) {
+                                  toast.error(error.response?.data?.message || "Verification failed");
+                                } finally {
+                                  setLoading(false);
+                                }
+                              },
+                              prefill: {
+                                name: order.deliveryInfo?.name || "",
+                                email: order.deliveryInfo?.email || "",
+                                contact: order.deliveryInfo?.phone || "",
+                              },
+                              theme: {
+                                color: "#ea580c",
+                              },
+                            };
+
+                            const paymentObject = new window.Razorpay(options);
+                            paymentObject.on('payment.failed', function (response) {
+                                toast.error(response.error.description);
+                            });
+                            paymentObject.open();
+                          } catch (err) {
+                            toast.error("Payment initiation failed");
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        className="orders-page__action-btn"
+                        style={{ flex: 1, backgroundColor: '#4caf50' }}
+                      >
+                        Repay
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await cancelOrder(order._id);
+                            toast.success("Order cancelled");
+                            fetchOrders();
+                          } catch (err) {
+                            toast.error("Failed to cancel order");
+                          }
+                        }}
+                        className="orders-page__action-btn"
+                        style={{ flex: 1, backgroundColor: '#f44336' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : order.deliveryStatus !== "delivered" ? (
                     <button
                       onClick={() => alert(`Tracking your order from ${order.restaurant?.name}. Status is currently: ${order.deliveryStatus}`)}
                       className="orders-page__action-btn"
@@ -150,7 +263,10 @@ const OrdersPage = () => {
                         {order.items?.map((item, idx) => (
                           <button
                             key={idx}
-                            onClick={() => setSelectedItemForFeedback(item.item || item._id)}
+                            onClick={() => {
+                              const targetId = item._id;
+                              setSelectedItemForFeedback(selectedItemForFeedback === targetId ? null : targetId);
+                            }}
                             className="orders-page__review-btn"
                           >
                             Review {item.itemName.substring(0, 10)}...
@@ -162,10 +278,10 @@ const OrdersPage = () => {
                 </div>
 
                 {/* Inline Review form trigger */}
-                {selectedItemForFeedback && order.items.some((it) => (it.item || it._id) === selectedItemForFeedback) && (
+                {selectedItemForFeedback && order.items.some((it) => it._id === selectedItemForFeedback) && (
                   <div className="orders-page__feedback-form-container">
                     <FeedbackForm
-                      itemId={selectedItemForFeedback}
+                      itemId={order.items.find((it) => it._id === selectedItemForFeedback)?.item || order.items.find((it) => it._id === selectedItemForFeedback)?._id}
                       onSuccess={() => setSelectedItemForFeedback(null)}
                     />
                   </div>

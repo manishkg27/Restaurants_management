@@ -28,3 +28,13 @@ export const updateDeliveryStatus = async (orderId, deliveryStatus) => {
   });
   return response.data;
 };
+
+export const cancelOrder = async (orderId) => {
+  const response = await API.delete(`/orders/${orderId}`);
+  return response.data;
+};
+
+export const payOrder = async (orderId) => {
+  const response = await API.patch(`/orders/${orderId}/pay`);
+  return response.data;
+};

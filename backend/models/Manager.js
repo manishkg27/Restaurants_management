@@ -35,6 +35,6 @@ const managerSchema = new mongoose.Schema(
   },
 );
 
-managerSchema.index({ restaurant: 1 });
+
 
 module.exports = mongoose.model("Manager", managerSchema);

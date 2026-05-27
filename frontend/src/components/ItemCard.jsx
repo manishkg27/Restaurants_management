@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { Star, Plus, Check } from "lucide-react";
 import formatCurrency from "../utils/formatCurrency";
+import ReviewsModal from "./ReviewsModal";
 import "./ItemCard.css";
 
 const ItemCard = ({ item }) => {
   const { addToCart, cartItems, removeItem } = useCart();
+  const [showReviews, setShowReviews] = useState(false);
 
   const inCart = cartItems.find((ci) => ci.itemInfo._id === item._id);
 
@@ -16,8 +18,9 @@ const ItemCard = ({ item }) => {
   const imageUrl = item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80";
 
   return (
-    <div className="item-card">
-      {/* Item Image */}
+    <>
+      <div className="item-card">
+        {/* Item Image */}
       <div className="item-card__image-wrapper">
         <img src={imageUrl} alt={item.name} className="item-card__image" />
       </div>
@@ -42,7 +45,12 @@ const ItemCard = ({ item }) => {
         {/* Rating + Button */}
         <div className="item-card__footer">
           {item.averageRating ? (
-            <div className="item-card__rating">
+            <div 
+              className="item-card__rating" 
+              onClick={() => setShowReviews(true)}
+              style={{ cursor: 'pointer', transition: 'opacity 0.2s' }}
+              title="View reviews"
+            >
               <Star size={11} fill="#f59e0b" color="#f59e0b" />
               <span className="item-card__rating-value">{item.averageRating.toFixed(1)}</span>
               <span>({item.totalRatings || 0})</span>
@@ -69,6 +77,15 @@ const ItemCard = ({ item }) => {
         </div>
       </div>
     </div>
+      
+      {showReviews && (
+        <ReviewsModal 
+          itemId={item._id} 
+          itemName={item.name} 
+          onClose={() => setShowReviews(false)} 
+        />
+      )}
+    </>
   );
 };
 

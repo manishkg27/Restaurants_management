@@ -60,12 +60,6 @@ const CheckoutPage = () => {
     }
   }, [useNewAddress, user]);
 
-  useEffect(() => {
-    if (cartItems.length === 0 && !loading) {
-      toast.warning("Your cart is empty! Add items before checking out.");
-      navigate("/restaurants");
-    }
-  }, [cartItems]);
 
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
@@ -308,9 +302,9 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          <button type="submit" className="checkout-page__button">
+          <button type="submit" className="checkout-page__button" disabled={loading}>
             <CreditCard size={15} />
-            Pay & Confirm Order
+            {loading ? "Processing..." : "Pay & Confirm Order"}
           </button>
         </form>
 

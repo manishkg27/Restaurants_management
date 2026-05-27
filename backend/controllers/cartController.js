@@ -152,7 +152,7 @@ const updateCartQuantity = async (req, res) => {
     const updatedCart = await Cart.findOneAndUpdate(
       { _id: req.params.cartId, user: req.user._id },
       { quantity },
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     );
 
     if (!updatedCart) {

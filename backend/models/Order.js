@@ -33,7 +33,7 @@ const orderSchema = new mongoose.Schema(
     deliveryStatus: {
       type: String,
       enum: {
-        values: ["pending", "confirmed", "delivered"],
+        values: ["pending", "confirmed", "preparing", "out-for-delivery", "delivered", "cancelled"],
         message: "{VALUE} is not a valid delivery status",
       },
       default: "pending",

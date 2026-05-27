@@ -6,6 +6,8 @@ const {
   getRestaurantOrders,
   updateDeliveryStatus,
   getDashboardStats,
+  cancelOrder,
+  payOrder,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -15,6 +17,8 @@ router.use(protect);
 // Customer Routes
 router.post("/", placeOrder);
 router.get("/my-orders", getMyOrders);
+router.delete("/:orderId", cancelOrder);
+router.patch("/:orderId/pay", payOrder);
 
 
 // Manager/Owner Routes

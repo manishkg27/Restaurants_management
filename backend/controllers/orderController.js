@@ -79,9 +79,7 @@ const placeOrder = async (req, res) => {
     }));
     await OrderItem.insertMany(populatedOrderItems, { session });
 
-    // 5. Clear the user's cart
-    await Cart.deleteMany({ user: userId }).session(session);
-
+    // Cart is preserved here and will be cleared only upon successful payment verification.
     await session.commitTransaction();
     session.endSession();
 
@@ -122,9 +120,12 @@ const getMyOrders = async (req, res) => {
 
     if (statusFilter === "payment-pending") {
       matchStage.paymentStatus = false;
+      matchStage.deliveryStatus = { $ne: "cancelled" };
     } else if (statusFilter === "delivered") {
-      matchStage.paymentStatus = true;
-      matchStage.deliveryStatus = "delivered";
+      matchStage.$or = [
+        { paymentStatus: true, deliveryStatus: "delivered" },
+        { deliveryStatus: "cancelled" }
+      ];
     } else if (statusFilter === "current") {
       matchStage.paymentStatus = true;
       matchStage.deliveryStatus = { $ne: "delivered" };
@@ -159,7 +160,7 @@ const getMyOrders = async (req, res) => {
           createdAt: 1,
           deliveryInfo: 1,
           "restaurant.name": "$restaurantInfo.name",
-          items: { itemName: 1, quantity: 1, totalPrice: 1 },
+          items: { _id: 1, item: 1, itemName: 1, quantity: 1, totalPrice: 1 },
         },
       },
     ]);
@@ -185,7 +186,7 @@ const getRestaurantOrders = async (req, res) => {
 
     // 2. Fetch orders + items
     const orders = await Order.aggregate([
-      { $match: { restaurant: restaurant._id } },
+      { $match: { restaurant: restaurant._id, paymentStatus: true } },
       { $sort: { createdAt: -1 } },
       {
         $lookup: {
@@ -250,7 +251,7 @@ const updateDeliveryStatus = async (req, res) => {
     const order = await Order.findOneAndUpdate(
       { _id: req.params.orderId, restaurant: restaurant._id },
       { deliveryStatus },
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     );
 
     if (!order) {
@@ -354,10 +355,54 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// @desc    Cancel an unpaid order
+// @route   DELETE /api/orders/:orderId
+// @access  Private (Customer)
+const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.orderId, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+    
+    if (order.paymentStatus === true) {
+      return res.status(400).json({ success: false, message: "Cannot cancel a paid order" });
+    }
+
+    order.deliveryStatus = "cancelled";
+    await order.save();
+
+    res.json({ success: true, message: "Order cancelled successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Mock pay for an order
+// @route   PATCH /api/orders/:orderId/pay
+// @access  Private (Customer)
+const payOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.orderId, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    order.paymentStatus = true;
+    await order.save();
+
+    res.json({ success: true, message: "Payment successful" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   placeOrder,
   getMyOrders,
   getRestaurantOrders,
   updateDeliveryStatus,
   getDashboardStats,
+  cancelOrder,
+  payOrder,
 };

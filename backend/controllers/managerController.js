@@ -83,7 +83,7 @@ const updateManager = async (req, res) => {
     const manager = await Manager.findOneAndUpdate(
       { _id: req.params.managerId, restaurant: restaurant._id },
       req.body,
-      { new: true, runValidators: true },
+      { returnDocument: 'after', runValidators: true },
     );
 
     if (!manager)

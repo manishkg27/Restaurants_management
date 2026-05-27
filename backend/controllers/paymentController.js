@@ -34,7 +34,7 @@ const createRazorpayOrder = async (req, res) => {
 
     // 2. Set up Razorpay options (amount must be in paise/smallest currency unit)
     const options = {
-      amount: order.totalPrice * 100, // Multiply by 100 for INR (₹1050 = 105000 paise)
+      amount: Math.round(order.totalPrice * 100), // Multiply by 100 for INR and round to avoid float errors
       currency: "INR",
       receipt: order._id.toString(),
     };
