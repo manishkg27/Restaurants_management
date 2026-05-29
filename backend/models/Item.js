@@ -12,6 +12,7 @@ const itemSchema = new mongoose.Schema(
     description: { type: String, required: true, maxlength: 1000 },
     price: { type: Number, required: true, min: 0 },
     image: { type: String, default: "" },
+    isVegetarian: { type: Boolean, default: false },
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalRatings: { type: Number, default: 0, min: 0 },
   },

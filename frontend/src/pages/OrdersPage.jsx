@@ -140,21 +140,59 @@ const OrdersPage = () => {
 
                 {/* Body Details */}
                 <div className="orders-page__card-body">
-                  {/* Status */}
-                  <div className="orders-page__status">
-                    <span>Status:</span>
-                    <span
-                      className={`orders-page__status-text ${
-                        order.deliveryStatus === "cancelled" ? "orders-page__status-text--failed" :
-                        order.paymentStatus === false ? "orders-page__status-text--failed" :
-                        order.deliveryStatus === "delivered"
-                          ? "orders-page__status-text--delivered"
-                          : "orders-page__status-text--active"
-                      }`}
-                    >
-                      {order.deliveryStatus === "cancelled" ? "Cancelled" : order.paymentStatus === false ? "Failed Payment" : order.deliveryStatus}
-                    </span>
-                  </div>
+                  {/* Order Progress Timeline */}
+                  {order.paymentStatus !== false && order.deliveryStatus !== "cancelled" && (
+                    <div className="orders-page__timeline" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0', position: 'relative' }}>
+                      <div style={{ position: 'absolute', top: '12px', left: '0', right: '0', height: '2px', backgroundColor: '#e5e7eb', zIndex: 1 }}></div>
+                      
+                      {['pending', 'confirmed', 'preparing', 'out-for-delivery', 'delivered'].map((step, index) => {
+                        const statusOrder = ['pending', 'confirmed', 'preparing', 'out-for-delivery', 'delivered'];
+                        const currentIndex = statusOrder.indexOf(order.deliveryStatus);
+                        const isCompleted = index <= currentIndex;
+                        const isActive = index === currentIndex;
+                        
+                        const stepNames = {
+                          'pending': 'Pending',
+                          'confirmed': 'Accepted',
+                          'preparing': 'Preparing',
+                          'out-for-delivery': 'On the way',
+                          'delivered': 'Delivered'
+                        };
+
+                        return (
+                          <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>
+                            <div style={{ 
+                              width: '24px', height: '24px', borderRadius: '50%', 
+                              backgroundColor: isCompleted ? '#22c55e' : '#fff',
+                              border: `2px solid ${isCompleted ? '#22c55e' : '#d1d5db'}`,
+                              display: 'flex', justifyContent: 'center', alignItems: 'center',
+                              boxShadow: isActive ? '0 0 0 4px rgba(34, 197, 94, 0.2)' : 'none'
+                            }}>
+                              {isCompleted && <CheckCircle2 size={14} color="#fff" />}
+                            </div>
+                            <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: isActive ? 'bold' : 'normal', color: isCompleted ? '#374151' : '#9ca3af', textAlign: 'center', width: '60px' }}>
+                              {stepNames[step]}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Fallback Status for Cancelled/Failed */}
+                  {(order.deliveryStatus === "cancelled" || order.paymentStatus === false) && (
+                    <div className="orders-page__status">
+                      <span>Status:</span>
+                      <span
+                        className={`orders-page__status-text ${
+                          order.deliveryStatus === "cancelled" ? "orders-page__status-text--failed" :
+                          order.paymentStatus === false ? "orders-page__status-text--failed" : ""
+                        }`}
+                      >
+                        {order.deliveryStatus === "cancelled" ? "Cancelled" : "Failed Payment"}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Items list */}
                   <div className="orders-page__items">
@@ -277,10 +315,14 @@ const OrdersPage = () => {
                     </div>
                   ) : order.deliveryStatus !== "delivered" ? (
                     <button
-                      onClick={() => alert(`Tracking your order from ${order.restaurant?.name}. Status is currently: ${order.deliveryStatus}`)}
+                      disabled
                       className="orders-page__action-btn"
+                      style={{ opacity: 0.7, cursor: 'default' }}
                     >
-                      Track Order
+                      {order.deliveryStatus === 'pending' ? 'Awaiting Confirmation' : 
+                       order.deliveryStatus === 'confirmed' ? 'Restaurant is processing' :
+                       order.deliveryStatus === 'preparing' ? 'Food is being prepared' :
+                       'Driver is on the way'}
                     </button>
                   ) : (
                     <div className="orders-page__feedback">

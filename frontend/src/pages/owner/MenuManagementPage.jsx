@@ -17,6 +17,7 @@ const MenuManagementPage = () => {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
+  const [isVegetarian, setIsVegetarian] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
 
@@ -50,6 +51,7 @@ const MenuManagementPage = () => {
     formData.append("name", name);
     formData.append("price", price);
     formData.append("description", description);
+    formData.append("isVegetarian", isVegetarian);
     if (image) formData.append("image", image);
 
     try {
@@ -78,6 +80,7 @@ const MenuManagementPage = () => {
     setName("");
     setPrice("");
     setDescription("");
+    setIsVegetarian(false);
     setImage(null);
   };
 
@@ -86,6 +89,7 @@ const MenuManagementPage = () => {
     setName(item.name);
     setPrice(item.price);
     setDescription(item.description || "");
+    setIsVegetarian(item.isVegetarian || false);
     setImage(null);
     setShowAddModal(true);
   };
@@ -186,6 +190,19 @@ const MenuManagementPage = () => {
                 />
               </div>
 
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  id="isVegetarian"
+                  type="checkbox"
+                  checked={isVegetarian}
+                  onChange={(e) => setIsVegetarian(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#22c55e' }}
+                />
+                <label className="form-label" htmlFor="isVegetarian" style={{ margin: 0, cursor: 'pointer' }}>
+                  Pure Vegetarian Dish
+                </label>
+              </div>
+
               <div className="form-group">
                 <label className="form-label" htmlFor="image">Dish Preview Image</label>
                 <div className="menu-mgmt__input-wrapper">
@@ -225,7 +242,12 @@ const MenuManagementPage = () => {
                 <div className="menu-mgmt__card-body">
                   <div>
                     <div className="menu-mgmt__card-header">
-                      <h4 className="menu-mgmt__card-title">{item.name}</h4>
+                      <h4 className="menu-mgmt__card-title">
+                        {item.name}
+                        {item.isVegetarian && (
+                          <span style={{ display: 'inline-block', marginLeft: '6px', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#22c55e', border: '2px solid white', boxShadow: '0 0 0 1px #22c55e' }} title="Vegetarian" />
+                        )}
+                      </h4>
                       <span className="menu-mgmt__card-price">
                         {formatCurrency(item.price)}
                       </span>

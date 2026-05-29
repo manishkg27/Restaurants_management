@@ -125,7 +125,7 @@ const OrdersManagementPage = () => {
         </div>
 
         {orders.filter(o => {
-          if (activeTab === "incoming") return ["pending", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
+          if (activeTab === "incoming") return ["pending", "confirmed", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
           if (activeTab === "delivered") return o.deliveryStatus === "delivered";
           if (activeTab === "cancelled") return o.deliveryStatus === "cancelled";
           return true;
@@ -137,7 +137,7 @@ const OrdersManagementPage = () => {
         ) : (
           <div className="orders-mgmt__list">
             {orders.filter(o => {
-              if (activeTab === "incoming") return ["pending", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
+              if (activeTab === "incoming") return ["pending", "confirmed", "preparing", "out-for-delivery"].includes(o.deliveryStatus);
               if (activeTab === "delivered") return o.deliveryStatus === "delivered";
               if (activeTab === "cancelled") return o.deliveryStatus === "cancelled";
               return true;
@@ -153,8 +153,11 @@ const OrdersManagementPage = () => {
                       <div className="orders-mgmt__price">
                         {formatCurrency(order.totalPrice)}
                       </div>
-                      <span className={`orders-mgmt__payment-badge ${order.paymentStatus ? 'orders-mgmt__payment-badge--paid' : 'orders-mgmt__payment-badge--pending'}`}>
-                        {order.paymentStatus ? "Paid" : "Payment Pending"}
+                      <span className={`orders-mgmt__payment-badge ${
+                        order.deliveryStatus === 'cancelled' ? 'orders-mgmt__payment-badge--refunded' : 
+                        order.paymentStatus ? 'orders-mgmt__payment-badge--paid' : 'orders-mgmt__payment-badge--pending'
+                      }`}>
+                        {order.deliveryStatus === 'cancelled' ? "Refunded" : order.paymentStatus ? "Paid" : "Payment Pending"}
                       </span>
                     </div>
                   </div>
@@ -171,10 +174,13 @@ const OrdersManagementPage = () => {
                       disabled={order.deliveryStatus === 'delivered' || order.deliveryStatus === 'cancelled'}
                     >
                       <option value="pending" disabled={order.deliveryStatus !== 'pending'}>Pending</option>
-                      <option value="preparing" disabled={order.deliveryStatus !== 'pending' && order.deliveryStatus !== 'preparing'}>Preparing</option>
+                      <option value="confirmed" disabled={!['pending', 'confirmed'].includes(order.deliveryStatus)}>Accepted</option>
+                      <option value="preparing" disabled={!['pending', 'confirmed', 'preparing'].includes(order.deliveryStatus)}>Preparing</option>
                       <option value="out-for-delivery" disabled={order.deliveryStatus === 'delivered' || order.deliveryStatus === 'cancelled'}>Out for Delivery</option>
                       <option value="delivered" disabled={order.deliveryStatus === 'cancelled'}>Delivered</option>
-                      <option value="cancelled" disabled={order.deliveryStatus === 'delivered'}>Cancelled</option>
+                      {(order.deliveryStatus === 'pending' || order.deliveryStatus === 'cancelled') && (
+                        <option value="cancelled" disabled={order.deliveryStatus === 'cancelled'}>Cancelled</option>
+                      )}
                     </select>
                   </div>
                 </div>

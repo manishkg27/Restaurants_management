@@ -60,6 +60,8 @@ const searchItems = async (req, res) => {
       itemName,
       restaurantName,
       location,
+      isVegetarian,
+      sortBy,
       page = 1,
       limit = 20,
     } = req.query;
@@ -77,6 +79,20 @@ const searchItems = async (req, res) => {
         { "restaurantInfo.location": { $regex: location, $options: "i" } },
         { "restaurantInfo.city": { $regex: location, $options: "i" } },
       ];
+    }
+    if (isVegetarian === 'true') {
+      matchStage.isVegetarian = true;
+    }
+
+    let sortStage = {};
+    if (sortBy === 'rating') {
+      sortStage = { $sort: { averageRating: -1 } };
+    } else if (sortBy === 'price_low') {
+      sortStage = { $sort: { price: 1 } };
+    } else if (sortBy === 'price_high') {
+      sortStage = { $sort: { price: -1 } };
+    } else {
+      sortStage = { $sort: { createdAt: -1 } }; // default
     }
 
     const pipeline = [
@@ -96,6 +112,7 @@ const searchItems = async (req, res) => {
           description: 1,
           price: 1,
           image: 1,
+          isVegetarian: 1,
           averageRating: 1,
           totalRatings: 1,
           "restaurantInfo.name": 1,
@@ -103,6 +120,7 @@ const searchItems = async (req, res) => {
           "restaurantInfo._id": 1,
         },
       },
+      sortStage,
       { $skip: skip },
       { $limit: parseInt(limit) },
     ];

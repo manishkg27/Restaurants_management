@@ -44,15 +44,25 @@ const userSchema = new mongoose.Schema(
         default: "",
         match: [/^[0-9]{10,15}$/, "Invalid phone number"],
       },
-      address: { type: String, default: "", maxlength: 200 },
-      city: { type: String, default: "", maxlength: 100 },
-      state: { type: String, default: "", maxlength: 100 },
-      country: { type: String, default: "", maxlength: 100 },
-      zipCode: {
-        type: String,
-        default: "",
-        match: [/^[0-9]{5,10}$/, "Invalid ZIP code"],
-      },
+      addresses: [
+        {
+          title: { type: String, required: true }, // e.g. Home, Work
+          address: { type: String, required: true, maxlength: 200 },
+          city: { type: String, required: true, maxlength: 100 },
+          state: { type: String, required: true, maxlength: 100 },
+          country: { type: String, default: "India", maxlength: 100 },
+          pinCode: {
+            type: String,
+            required: true,
+            match: [/^[0-9]{5,10}$/, "Invalid ZIP code"],
+          },
+          contactNumber: {
+            type: String,
+            required: true,
+            match: [/^[0-9]{10,15}$/, "Invalid phone number"],
+          }
+        }
+      ],
     },
   },
   {

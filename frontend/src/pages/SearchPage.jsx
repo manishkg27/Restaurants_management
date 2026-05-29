@@ -16,6 +16,8 @@ const SearchPage = () => {
   const [itemName, setItemName] = useState(initialQuery);
   const [restaurantName, setRestaurantName] = useState("");
   const [location, setLocation] = useState("");
+  const [isVegetarian, setIsVegetarian] = useState(false);
+  const [sortBy, setSortBy] = useState("rating");
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -30,6 +32,8 @@ const SearchPage = () => {
         itemName: itemName.trim() || undefined,
         restaurantName: restaurantName.trim() || undefined,
         location: location.trim() || undefined,
+        isVegetarian: isVegetarian ? 'true' : undefined,
+        sortBy: sortBy,
       });
       if (response.success) {
         setItems(response.data || []);
@@ -102,6 +106,35 @@ const SearchPage = () => {
                     placeholder="e.g. Mumbai, Delhi..."
                   />
                 </div>
+              </div>
+
+              <div className="search-page__form-group">
+                <label className="search-page__label">Sort By</label>
+                <div className="search-page__input-wrapper">
+                  <select
+                    className="search-page__input"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    style={{ appearance: 'auto' }}
+                  >
+                    <option value="rating">Rating (High to Low)</option>
+                    <option value="price_low">Price (Low to High)</option>
+                    <option value="price_high">Price (High to Low)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="search-page__form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <input
+                  id="searchVegOnly"
+                  type="checkbox"
+                  checked={isVegetarian}
+                  onChange={(e) => setIsVegetarian(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#22c55e' }}
+                />
+                <label className="search-page__label" htmlFor="searchVegOnly" style={{ margin: 0, cursor: 'pointer', marginBottom: 0 }}>
+                  Vegetarian Only
+                </label>
               </div>
             </div>
 

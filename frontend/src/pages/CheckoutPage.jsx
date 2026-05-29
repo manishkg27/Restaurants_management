@@ -41,17 +41,30 @@ const CheckoutPage = () => {
   const [pinCode, setPinCode] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
+
   useEffect(() => {
-    if (!useNewAddress && user) {
+    if (user && user.profile) {
       setName(user.profile?.fullName || user.username || "");
-      setPhone(user.profile?.contactNumber || "");
+      const userAddresses = user.profile.addresses || [];
+      setAddresses(userAddresses);
+      
+      if (userAddresses.length > 0 && !useNewAddress) {
+        // Auto-select first address
+        const firstAddr = userAddresses[0];
+        setSelectedAddressId(firstAddr._id);
+        setPhone(firstAddr.contactNumber || "");
+        setAddress(firstAddr.address || "");
+        setCity(firstAddr.city || "");
+        setState(firstAddr.state || "");
+        setPinCode(firstAddr.pinCode || "");
+      }
       setEmail(user.email || "");
-      setAddress(user.profile?.address || "");
-      setCity(user.profile?.city || "");
-      setState(user.profile?.state || "");
-      setPinCode(user.profile?.zipCode || "");
-    } else if (useNewAddress) {
-      setName("");
+    }
+    
+    if (useNewAddress) {
+      setSelectedAddressId("");
       setPhone("");
       setAddress("");
       setCity("");
@@ -60,7 +73,18 @@ const CheckoutPage = () => {
     }
   }, [useNewAddress, user]);
 
-
+  const handleAddressSelect = (addrId) => {
+    setSelectedAddressId(addrId);
+    setUseNewAddress(false);
+    const addr = addresses.find(a => a._id === addrId);
+    if (addr) {
+      setPhone(addr.contactNumber || "");
+      setAddress(addr.address || "");
+      setCity(addr.city || "");
+      setState(addr.state || "");
+      setPinCode(addr.pinCode || "");
+    }
+  };
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     if (!name || !phone || !email || !address || !city || !state || !pinCode) {
@@ -177,146 +201,176 @@ const CheckoutPage = () => {
             </h3>
           </div>
 
+          {addresses.length > 0 && (
+            <div style={{ marginBottom: '20px' }}>
+              <label className="checkout-page__label" style={{ marginBottom: '10px', display: 'block' }}>Saved Addresses</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginBottom: '15px' }}>
+                {addresses.map(addr => (
+                  <div 
+                    key={addr._id} 
+                    onClick={() => handleAddressSelect(addr._id)}
+                    style={{ 
+                      border: `2px solid ${selectedAddressId === addr._id ? '#ea580c' : '#e5e7eb'}`, 
+                      borderRadius: '8px', padding: '10px', cursor: 'pointer',
+                      backgroundColor: selectedAddressId === addr._id ? '#fff7ed' : '#fff'
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '14px', marginBottom: '4px' }}>{addr.title}</div>
+                    <div style={{ fontSize: '12px', color: '#4b5563', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{addr.address}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={{ marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
             <input
               type="checkbox"
               id="useNewAddress"
-              checked={useNewAddress}
+              checked={useNewAddress || addresses.length === 0}
               onChange={(e) => setUseNewAddress(e.target.checked)}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", width: '16px', height: '16px', accentColor: '#ea580c' }}
             />
-            <label htmlFor="useNewAddress" style={{ cursor: "pointer", fontSize: "14px", color: "#ddd" }}>
-              Deliver to a different address
+            <label htmlFor="useNewAddress" style={{ cursor: "pointer", fontSize: "14px", color: "#4b5563", fontWeight: '500' }}>
+              Deliver to a different/new address
             </label>
           </div>
 
-          <div className="checkout-page__form-group">
-            <label className="checkout-page__label" htmlFor="name">
-              Recipient Name
-            </label>
-            <div className="checkout-page__input-wrapper">
-              <User size={14} className="checkout-page__input-icon" />
-              <input
-                id="name"
-                type="text"
-                className="checkout-page__input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                required
-              />
-            </div>
-          </div>
+          {(useNewAddress || addresses.length === 0) && (
+            <div style={{ backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e5e7eb' }}>
+              <p style={{ margin: '0 0 15px 0', fontSize: '13px', color: '#6b7280' }}>
+                Note: This address will only be used for this order. To save an address, please go to your Profile.
+              </p>
 
-          <div className="checkout-page__form-group">
-            <label className="checkout-page__label" htmlFor="phone">
-              Contact Number
-            </label>
-            <div className="checkout-page__input-wrapper">
-              <Phone size={14} className="checkout-page__input-icon" />
-              <input
-                id="phone"
-                type="tel"
-                className="checkout-page__input"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. 9876543210"
-                required
-              />
-            </div>
-          </div>
+              <div className="checkout-page__form-group">
+                <label className="checkout-page__label" htmlFor="name">
+                  Recipient Name
+                </label>
+                <div className="checkout-page__input-wrapper">
+                  <User size={14} className="checkout-page__input-icon" />
+                  <input
+                    id="name"
+                    type="text"
+                    className="checkout-page__input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="checkout-page__form-group">
-            <label className="checkout-page__label" htmlFor="email">
-              Email Address
-            </label>
-            <div className="checkout-page__input-wrapper">
-              <User size={14} className="checkout-page__input-icon" />
-              <input
-                id="email"
-                type="email"
-                className="checkout-page__input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. user@example.com"
-                required
-              />
-            </div>
-          </div>
+              <div className="checkout-page__form-group">
+                <label className="checkout-page__label" htmlFor="phone">
+                  Contact Number
+                </label>
+                <div className="checkout-page__input-wrapper">
+                  <Phone size={14} className="checkout-page__input-icon" />
+                  <input
+                    id="phone"
+                    type="tel"
+                    className="checkout-page__input"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. 9876543210"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="checkout-page__form-group">
-            <label className="checkout-page__label" htmlFor="address">
-              Delivery Address
-            </label>
-            <div className="checkout-page__input-wrapper">
-              <MapPin size={14} className="checkout-page__input-icon checkout-page__input-icon--textarea" />
-              <textarea
-                id="address"
-                className="checkout-page__textarea"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter complete house/office street address, landmarks..."
-                rows={3}
-                required
-              />
-            </div>
-          </div>
+              <div className="checkout-page__form-group">
+                <label className="checkout-page__label" htmlFor="email">
+                  Email Address
+                </label>
+                <div className="checkout-page__input-wrapper">
+                  <User size={14} className="checkout-page__input-icon" />
+                  <input
+                    id="email"
+                    type="email"
+                    className="checkout-page__input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. user@example.com"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div style={{ display: 'flex', gap: '15px' }}>
-            <div className="checkout-page__form-group" style={{ flex: 1 }}>
-              <label className="checkout-page__label" htmlFor="city">
-                City
-              </label>
-              <div className="checkout-page__input-wrapper">
-                <MapPin size={14} className="checkout-page__input-icon" />
-                <input
-                  id="city"
-                  type="text"
-                  className="checkout-page__input"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="e.g. Mumbai"
-                  required
-                />
+              <div className="checkout-page__form-group">
+                <label className="checkout-page__label" htmlFor="address">
+                  Delivery Address
+                </label>
+                <div className="checkout-page__input-wrapper">
+                  <MapPin size={14} className="checkout-page__input-icon checkout-page__input-icon--textarea" />
+                  <textarea
+                    id="address"
+                    className="checkout-page__textarea"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter complete house/office street address, landmarks..."
+                    rows={3}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div className="checkout-page__form-group" style={{ flex: 1 }}>
+                  <label className="checkout-page__label" htmlFor="city">
+                    City
+                  </label>
+                  <div className="checkout-page__input-wrapper">
+                    <MapPin size={14} className="checkout-page__input-icon" />
+                    <input
+                      id="city"
+                      type="text"
+                      className="checkout-page__input"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Mumbai"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="checkout-page__form-group" style={{ flex: 1 }}>
+                  <label className="checkout-page__label" htmlFor="state">
+                    State
+                  </label>
+                  <div className="checkout-page__input-wrapper">
+                    <MapPin size={14} className="checkout-page__input-icon" />
+                    <input
+                      id="state"
+                      type="text"
+                      className="checkout-page__input"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Maharashtra"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="checkout-page__form-group">
+                <label className="checkout-page__label" htmlFor="pinCode">
+                  Pin Code
+                </label>
+                <div className="checkout-page__input-wrapper">
+                  <MapPin size={14} className="checkout-page__input-icon" />
+                  <input
+                    id="pinCode"
+                    type="text"
+                    className="checkout-page__input"
+                    value={pinCode}
+                    onChange={(e) => setPinCode(e.target.value)}
+                    placeholder="e.g. 400050"
+                    required
+                  />
+                </div>
               </div>
             </div>
-
-            <div className="checkout-page__form-group" style={{ flex: 1 }}>
-              <label className="checkout-page__label" htmlFor="state">
-                State
-              </label>
-              <div className="checkout-page__input-wrapper">
-                <MapPin size={14} className="checkout-page__input-icon" />
-                <input
-                  id="state"
-                  type="text"
-                  className="checkout-page__input"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  placeholder="e.g. Maharashtra"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="checkout-page__form-group">
-            <label className="checkout-page__label" htmlFor="pinCode">
-              Pin Code
-            </label>
-            <div className="checkout-page__input-wrapper">
-              <MapPin size={14} className="checkout-page__input-icon" />
-              <input
-                id="pinCode"
-                type="text"
-                className="checkout-page__input"
-                value={pinCode}
-                onChange={(e) => setPinCode(e.target.value)}
-                placeholder="e.g. 400050"
-                required
-              />
-            </div>
-          </div>
+          )}
 
           <button type="submit" className="checkout-page__button" disabled={loading}>
             <CreditCard size={15} />

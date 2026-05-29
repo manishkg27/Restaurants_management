@@ -81,6 +81,10 @@
   background-color: #fee2e2;
   color: #dc2626;
 }
+.orders-mgmt__payment-badge--refunded {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
 .orders-mgmt__status-row {
   display: flex;
   align-items: center;
