@@ -12,6 +12,11 @@ const feedbackSchema = new mongoose.Schema(
       ref: "Item",
       required: [true, "Feedback must reference an item"],
     },
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+      required: [true, "Feedback must reference an order"],
+    },
     rating: {
       type: Number,
       required: [true, "Rating is required"],
@@ -32,6 +37,6 @@ const feedbackSchema = new mongoose.Schema(
 // Indexes
 feedbackSchema.index({ item: 1, createdAt: -1 }); // Fast loading of item reviews
 feedbackSchema.index({ user: 1 }); // Find all reviews by a user
-feedbackSchema.index({ user: 1, item: 1 }, { unique: true }); // Prevent multiple reviews from same user on same item
+feedbackSchema.index({ user: 1, item: 1, order: 1 }, { unique: true }); // Prevent multiple reviews from same user on same item in the same order
 
 module.exports = mongoose.model("Feedback", feedbackSchema);

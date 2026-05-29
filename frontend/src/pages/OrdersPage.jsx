@@ -310,6 +310,7 @@ const OrdersPage = () => {
                   <div className="orders-page__feedback-form-container">
                     <FeedbackForm
                       itemId={order.items.find((it) => it._id === selectedItemForFeedback)?.item || order.items.find((it) => it._id === selectedItemForFeedback)?._id}
+                      orderId={order._id}
                       onSuccess={() => setSelectedItemForFeedback(null)}
                     />
                   </div>

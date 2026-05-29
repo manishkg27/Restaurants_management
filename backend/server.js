@@ -47,7 +47,7 @@ app.use("/api/feedback", require("./routes/feedbackRoutes"));
 app.use("/api/managers", require("./routes/managerRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
-// Global Error Handler (Optional but recommended catch-all)
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

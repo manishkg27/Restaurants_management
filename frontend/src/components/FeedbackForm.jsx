@@ -1,13 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import StarRating from "./StarRating";
-import { submitFeedback } from "../api/feedbackAPI";
+import { submitFeedback, checkFeedback, updateFeedback } from "../api/feedbackAPI";
 import { toast } from "react-toastify";
 import "./FeedbackForm.css";
 
-const FeedbackForm = ({ itemId, onSuccess = null }) => {
+const FeedbackForm = ({ itemId, orderId, onSuccess = null }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [existingFeedbackId, setExistingFeedbackId] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExistingFeedback = async () => {
+      if (!orderId || !itemId) return;
+      try {
+        const response = await checkFeedback(orderId, itemId);
+        if (response.success && response.hasReviewed) {
+          setExistingFeedbackId(response.data._id);
+          setRating(response.data.rating);
+          setComment(response.data.experience);
+        }
+      } catch (error) {
+        console.error("Failed to check existing feedback", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExistingFeedback();
+  }, [orderId, itemId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,24 +38,32 @@ const FeedbackForm = ({ itemId, onSuccess = null }) => {
     }
     setSubmitting(true);
     try {
-      const response = await submitFeedback({ itemId, rating, experience: comment });
+      let response;
+      if (existingFeedbackId) {
+        response = await updateFeedback(existingFeedbackId, { rating, experience: comment });
+      } else {
+        response = await submitFeedback({ itemId, orderId, rating, experience: comment });
+      }
+      
       if (response.success) {
-        toast.success(response.message || "Feedback submitted successfully!");
-        setComment("");
-        setRating(5);
+        toast.success(response.message || "Feedback saved successfully!");
         if (onSuccess) onSuccess();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to submit feedback");
+      toast.error(error.response?.data?.message || "Failed to save feedback");
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (loading) {
+    return <div className="feedback-form">Loading...</div>;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="feedback-form">
       <h4 className="feedback-form__title">
-        Review this item
+        {existingFeedbackId ? "Edit your review" : "Review this item"}
       </h4>
 
       <div className="feedback-form__rating-row">
@@ -57,7 +86,7 @@ const FeedbackForm = ({ itemId, onSuccess = null }) => {
       </div>
 
       <button type="submit" className="btn btn--primary feedback-form__submit-btn" disabled={submitting}>
-        {submitting ? "Submitting..." : "Submit Review"}
+        {submitting ? "Saving..." : (existingFeedbackId ? "Update Review" : "Submit Review")}
       </button>
     </form>
   );

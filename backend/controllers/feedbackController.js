@@ -7,8 +7,12 @@ const Order = require("../models/Order");
 // @access  Private
 const submitFeedback = async (req, res) => {
   try {
-    const { itemId, rating, experience } = req.body;
+    const { itemId, orderId, rating, experience } = req.body;
     const userId = req.user._id;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: "Order ID is required to submit feedback" });
+    }
 
     // 1. Verify the item exists
     const item = await Item.findById(itemId);
@@ -18,18 +22,6 @@ const submitFeedback = async (req, res) => {
         .json({ success: false, message: "Item not found" });
     }
 
-    // 2. (Optional but recommended) Check if user actually ordered this item before
-    // We look in the user's past delivered orders for this item
-    /*
-    const hasOrdered = await Order.aggregate([
-      { $match: { user: userId, deliveryStatus: 'delivered' } },
-      { $lookup: { from: 'orderitems', localField: '_id', foreignField: 'order', as: 'items' } },
-      { $match: { "items.item": item._id } }
-    ]);
-    if (hasOrdered.length === 0) {
-      return res.status(403).json({ success: false, message: 'You can only review items you have ordered and received' });
-    }
-    */
 
     // 3. Create the feedback (this will fail with 11000 if user already reviewed due to the unique index)
     let feedback;
@@ -37,6 +29,7 @@ const submitFeedback = async (req, res) => {
       feedback = await Feedback.create({
         user: userId,
         item: itemId,
+        order: orderId,
         rating,
         experience,
       });
@@ -46,7 +39,7 @@ const submitFeedback = async (req, res) => {
           .status(409)
           .json({
             success: false,
-            message: "You have already reviewed this item",
+            message: "You have already reviewed this item for this order",
           });
       }
       throw err;
@@ -115,4 +108,77 @@ const getItemFeedback = async (req, res) => {
   }
 };
 
-module.exports = { submitFeedback, getItemFeedback };
+// @desc    Check if a user has already reviewed an item for a specific order
+// @route   GET /api/feedback/check/:orderId/:itemId
+// @access  Private
+const checkFeedback = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const feedback = await Feedback.findOne({
+      user: req.user._id,
+      order: orderId,
+      item: itemId,
+    });
+    
+    if (feedback) {
+      res.json({ success: true, hasReviewed: true, data: feedback });
+    } else {
+      res.json({ success: true, hasReviewed: false });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Update an existing feedback
+// @route   PUT /api/feedback/:feedbackId
+// @access  Private
+const updateFeedback = async (req, res) => {
+  try {
+    const { rating, experience } = req.body;
+    const feedbackId = req.params.feedbackId;
+
+    let feedback = await Feedback.findById(feedbackId);
+
+    if (!feedback) {
+      return res.status(404).json({ success: false, message: "Feedback not found" });
+    }
+
+    if (feedback.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ success: false, message: "Not authorized to update this feedback" });
+    }
+
+    feedback.rating = rating;
+    feedback.experience = experience;
+    await feedback.save();
+
+    // Recalculate average rating
+    const stats = await Feedback.aggregate([
+      { $match: { item: feedback.item } },
+      {
+        $group: {
+          _id: "$item",
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 },
+        },
+      },
+    ]);
+
+    if (stats.length > 0) {
+      await Item.findByIdAndUpdate(feedback.item, {
+        averageRating: Math.round(stats[0].averageRating * 10) / 10,
+        totalRatings: stats[0].totalRatings,
+      });
+    }
+
+    res.json({
+      success: true,
+      data: feedback,
+      message: "Feedback updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { submitFeedback, getItemFeedback, checkFeedback, updateFeedback };
