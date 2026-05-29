@@ -42,7 +42,7 @@ const createManager = async (req, res) => {
         message: "Manager details added successfully",
       });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -97,7 +97,7 @@ const updateManager = async (req, res) => {
       message: "Manager details updated successfully",
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

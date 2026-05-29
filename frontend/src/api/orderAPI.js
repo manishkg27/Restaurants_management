@@ -1,7 +1,7 @@
 import API from "./axios";
 
-export const placeOrder = async (deliveryInfo) => {
-  const response = await API.post("/orders", { deliveryInfo });
+export const placeOrder = async (payload) => {
+  const response = await API.post("/orders", payload);
   return response.data;
 };
 
@@ -41,7 +41,4 @@ export const cancelOrder = async (orderId) => {
   return response.data;
 };
 
-export const payOrder = async (orderId) => {
-  const response = await API.patch(`/orders/${orderId}/pay`);
-  return response.data;
-};
+

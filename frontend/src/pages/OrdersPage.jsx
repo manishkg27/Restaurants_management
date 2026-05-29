@@ -55,7 +55,7 @@ const OrdersPage = () => {
   useEffect(() => {
     if (user && socketHook.socket) {
       // Join customer's private room
-      socketHook.emit("joinUserRoom", { userId: user._id });
+      socketHook.joinUserRoom(user._id);
 
       // Listen for delivery status updates
       socketHook.listen("orderStatusUpdate", (data) => {

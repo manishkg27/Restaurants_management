@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import {
   getCart,
@@ -22,7 +22,7 @@ export const CartProvider = ({ children }) => {
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     if (!user) {
       setCartItems([]);
       setCartTotal(0);
@@ -42,11 +42,11 @@ export const CartProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchCart();
-  }, [user]);
+  }, [fetchCart]);
 
   const addToCart = async (itemId) => {
     if (!user) {

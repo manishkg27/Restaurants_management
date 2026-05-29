@@ -82,7 +82,7 @@ const OwnerDashboardPage = () => {
 
   useEffect(() => {
     if (restaurant && socketHook.socket) {
-      socketHook.emit("joinRestaurantRoom", { restaurantId: restaurant._id });
+      socketHook.joinRestaurantRoom(restaurant._id);
 
       socketHook.listen("newOrder", (data) => {
         toast.info(data.message || "New order received!", {

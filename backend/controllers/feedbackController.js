@@ -2,6 +2,25 @@ const Feedback = require("../models/Feedback");
 const Item = require("../models/Item");
 const Order = require("../models/Order");
 
+const recalculateItemRating = async (itemId) => {
+  const stats = await Feedback.aggregate([
+    { $match: { item: itemId } },
+    {
+      $group: {
+        _id: "$item",
+        averageRating: { $avg: "$rating" },
+        totalRatings: { $sum: 1 },
+      },
+    },
+  ]);
+
+  if (stats.length > 0) {
+    await Item.findByIdAndUpdate(itemId, {
+      averageRating: Math.round(stats[0].averageRating * 10) / 10,
+      totalRatings: stats[0].totalRatings,
+    });
+  }
+};
 // @desc    Submit feedback/rating for a food item
 // @route   POST /api/feedback
 // @access  Private
@@ -45,25 +64,8 @@ const submitFeedback = async (req, res) => {
       throw err;
     }
 
-    // 4. Recalculate the exact average rating using MongoDB Aggregation
-    const stats = await Feedback.aggregate([
-      { $match: { item: item._id } },
-      {
-        $group: {
-          _id: "$item",
-          averageRating: { $avg: "$rating" },
-          totalRatings: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // 5. Update the Item document with the fresh stats
-    if (stats.length > 0) {
-      await Item.findByIdAndUpdate(itemId, {
-        averageRating: Math.round(stats[0].averageRating * 10) / 10, // Round to 1 decimal place (e.g., 4.3)
-        totalRatings: stats[0].totalRatings,
-      });
-    }
+    // 4. Recalculate the exact average rating
+    await recalculateItemRating(item._id);
 
     res.status(201).json({
       success: true,
@@ -145,7 +147,7 @@ const updateFeedback = async (req, res) => {
     }
 
     if (feedback.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ success: false, message: "Not authorized to update this feedback" });
+      return res.status(403).json({ success: false, message: "Not authorized to update this feedback" });
     }
 
     feedback.rating = rating;
@@ -153,23 +155,7 @@ const updateFeedback = async (req, res) => {
     await feedback.save();
 
     // Recalculate average rating
-    const stats = await Feedback.aggregate([
-      { $match: { item: feedback.item } },
-      {
-        $group: {
-          _id: "$item",
-          averageRating: { $avg: "$rating" },
-          totalRatings: { $sum: 1 },
-        },
-      },
-    ]);
-
-    if (stats.length > 0) {
-      await Item.findByIdAndUpdate(feedback.item, {
-        averageRating: Math.round(stats[0].averageRating * 10) / 10,
-        totalRatings: stats[0].totalRatings,
-      });
-    }
+    await recalculateItemRating(feedback.item);
 
     res.json({
       success: true,

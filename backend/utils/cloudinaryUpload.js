@@ -6,10 +6,12 @@ const uploadToCloudinary = (buffer, folder = "eatify") => {
     const stream = cloudinary.uploader.upload_stream(
       { folder },
       (error, result) => {
-        if (result) {
+        if (error) {
+          reject(error);
+        } else if (result) {
           resolve(result.secure_url);
         } else {
-          reject(error);
+          reject(new Error("Unknown error during Cloudinary upload"));
         }
       },
     );

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getRestaurants } from "../api/restaurantAPI";
-import { getItems } from "../api/itemAPI";
+import { searchItems } from "../api/itemAPI";
 import RestaurantCard from "../components/RestaurantCard";
 import ItemCard from "../components/ItemCard";
 import { Search, Sparkles, ChefHat } from "lucide-react";
@@ -16,6 +16,7 @@ const HomePage = () => {
   const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const categories = [
     { name: "Pizza", emoji: "🍕" },
@@ -27,18 +28,17 @@ const HomePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(false);
         const restRes = await getRestaurants({ limit: 6 });
-        const itemsRes = await getItems();
+        const itemsRes = await searchItems({ sortBy: 'rating', limit: 4 });
         if (restRes.success) setRestaurants(restRes.data || []);
         if (itemsRes.success) {
-          const sortedItems = (itemsRes.data || [])
-            .filter((item) => item.averageRating)
-            .sort((a, b) => b.averageRating - a.averageRating)
-            .slice(0, 4);
-          setItems(sortedItems);
+          setItems(itemsRes.data || []);
         }
-      } catch (error) {
-        console.error("Home page fetch error:", error);
+      } catch (err) {
+        console.error("Home page fetch error:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -58,6 +58,20 @@ const HomePage = () => {
   };
 
   if (loading) return <LoadingSpinner fullPage />;
+  
+  if (error) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', textAlign: 'center' }}>
+        <h2 style={{ marginBottom: '16px', color: '#ef4444' }}>Oops! Something went wrong.</h2>
+        <p style={{ marginBottom: '24px', color: '#6b7280' }}>We couldn't load the data. Please check your connection and try again.</p>
+        <button 
+          onClick={() => { setLoading(true); setError(false); window.location.reload(); }} 
+          style={{ padding: '10px 20px', backgroundColor: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="home">

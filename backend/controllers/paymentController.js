@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const PaymentHistory = require("../models/PaymentHistory");
 const Notification = require("../models/Notification");
 const Restaurant = require("../models/Restaurant");
+const Cart = require("../models/Cart");
 
 // Initialize Razorpay instance
 const razorpay = new Razorpay({
@@ -94,9 +95,18 @@ const verifyPayment = async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // 4a. Signature matches -> Mark order as paid
+      // 4. Double check payment status with Razorpay
+      const payment = await razorpay.payments.fetch(razorpay_payment_id);
+      if (payment.order_id !== razorpay_order_id || payment.status !== "captured") {
+        return res.status(400).json({ success: false, message: "Payment not captured or mismatch" });
+      }
+
+      // 5a. Signature matches & captured -> Mark order as paid
       order.paymentStatus = true;
       await order.save();
+
+      // 4a2. Clear the cart
+      await Cart.deleteMany({ user: order.user });
 
       // 4b. Log the payment history
       await PaymentHistory.create({

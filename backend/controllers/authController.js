@@ -50,7 +50,7 @@ const registerUser = async (req, res) => {
       res.status(400).json({ success: false, message: "Invalid user data" });
     }
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

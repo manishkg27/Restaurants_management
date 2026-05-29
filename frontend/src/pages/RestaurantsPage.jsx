@@ -12,9 +12,11 @@ const RestaurantsPage = () => {
   const [city, setCity] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState(false);
 
   const fetchFilteredRestaurants = async () => {
     setLoading(true);
+    setError(false);
     try {
       const response = await getRestaurants({
         search: search.trim() || undefined,
@@ -26,8 +28,9 @@ const RestaurantsPage = () => {
         setRestaurants(response.data || []);
         setTotalPages(response.totalPages || 1);
       }
-    } catch (error) {
-      console.error("Fetch restaurants failed:", error);
+    } catch (err) {
+      console.error("Fetch restaurants failed:", err);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -92,6 +95,16 @@ const RestaurantsPage = () => {
         {/* Content Listing */}
         {loading ? (
           <LoadingSpinner />
+        ) : error ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', textAlign: 'center', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
+            <h3 style={{ marginBottom: '12px', color: '#ef4444' }}>Unable to fetch restaurants</h3>
+            <p style={{ marginBottom: '20px', color: '#6b7280' }}>Please check your network connection and try again.</p>
+            <button 
+              onClick={fetchFilteredRestaurants} 
+              style={{ padding: '10px 20px', backgroundColor: '#ea580c', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+              Retry
+            </button>
+          </div>
         ) : restaurants.length === 0 ? (
           <div className="restaurants__empty">
             No restaurants found matching your filters.

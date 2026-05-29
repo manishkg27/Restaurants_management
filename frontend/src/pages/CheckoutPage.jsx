@@ -102,7 +102,10 @@ const CheckoutPage = () => {
         return;
       }
 
-      const orderRes = await placeOrder({ name, phone, email, address, city, state, pinCode });
+      const orderRes = await placeOrder({ 
+        deliveryInfo: { name, phone, email, address, city, state, pinCode },
+        expectedTotal: cartTotal 
+      });
       if (!orderRes.success) {
         toast.error(orderRes.message || "Failed to place order");
         setLoading(false);

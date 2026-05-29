@@ -14,7 +14,7 @@ const placeOrder = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { deliveryInfo } = req.body;
+    const { deliveryInfo, expectedTotal } = req.body;
     const userId = req.user._id;
 
     if (
@@ -23,6 +23,8 @@ const placeOrder = async (req, res) => {
       !deliveryInfo.phone ||
       !deliveryInfo.address
     ) {
+      await session.abortTransaction();
+      session.endSession();
       return res
         .status(400)
         .json({ success: false, message: "Incomplete delivery information" });
@@ -31,6 +33,8 @@ const placeOrder = async (req, res) => {
     // 1. Fetch user's cart
     const cartItems = await Cart.find({ user: userId }).session(session);
     if (cartItems.length === 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ success: false, message: "Cart is empty" });
     }
 
@@ -56,6 +60,10 @@ const placeOrder = async (req, res) => {
         quantity: cartItem.quantity,
         totalPrice: itemTotalPrice,
       });
+    }
+
+    if (expectedTotal && Math.abs(orderTotalPrice - expectedTotal) > 0.01) {
+      throw new Error(`Prices have been updated! The new total is ₹${orderTotalPrice}. Please review your cart to continue.`);
     }
 
     // 3. Create the Order
@@ -107,7 +115,7 @@ const placeOrder = async (req, res) => {
 const getMyOrders = async (req, res) => {
   try {
     const statusFilter = req.query.status; // 'current', 'payment-pending', 'delivered'
-    let matchStage = { user: req.user._id };
+    let matchStage = { user: new mongoose.Types.ObjectId(req.user._id) };
 
     if (statusFilter === "payment-pending") {
       matchStage.paymentStatus = false;
@@ -239,16 +247,35 @@ const updateDeliveryStatus = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Restaurant not found" });
 
-    const order = await Order.findOneAndUpdate(
-      { _id: req.params.orderId, restaurant: restaurant._id },
-      { deliveryStatus },
-      { returnDocument: 'after', runValidators: true },
-    );
+    const order = await Order.findOne({ _id: req.params.orderId, restaurant: restaurant._id });
 
     if (!order) {
       return res
         .status(404)
         .json({ success: false, message: "Order not found or unauthorized" });
+    }
+
+    const VALID_TRANSITIONS = {
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['preparing', 'cancelled'],
+      preparing: ['out-for-delivery', 'cancelled'],
+      'out-for-delivery': ['delivered'],
+      delivered: [],
+      cancelled: [],
+    };
+
+    if (!VALID_TRANSITIONS[order.deliveryStatus]?.includes(deliveryStatus)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid status transition from ${order.deliveryStatus} to ${deliveryStatus}` 
+      });
+    }
+
+    order.deliveryStatus = deliveryStatus;
+    await order.save();
+
+    if (deliveryStatus === 'cancelled') {
+      await OrderItem.deleteMany({ order: order._id });
     }
 
     // Future: Emit socket to user to notify them of delivery status change
@@ -280,7 +307,7 @@ const updateDeliveryStatus = async (req, res) => {
       message: `Delivery status updated to ${deliveryStatus}`,
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -374,11 +401,12 @@ const getDashboardStats = async (req, res) => {
             }
           },
           
-          // Pending Orders: Payment is false, OR (payment is true but delivery is NOT "delivered" and NOT "cancelled")
+          // Pending Orders: Payment is true and delivery is NOT "delivered" and NOT "cancelled"
           pendingOrders: {
             $sum: { 
               $cond: [
                 { $and: [
+                  { $eq: ["$paymentStatus", true] },
                   { $ne: ["$deliveryStatus", "delivered"] },
                   { $ne: ["$deliveryStatus", "cancelled"] }
                 ]},
@@ -438,6 +466,8 @@ const cancelOrder = async (req, res) => {
 
     order.deliveryStatus = "cancelled";
     await order.save();
+
+    await OrderItem.deleteMany({ order: order._id });
 
     res.json({ success: true, message: "Order cancelled successfully" });
   } catch (error) {

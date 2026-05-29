@@ -10,7 +10,9 @@ const updateProfile = async (req, res) => {
     if (user) {
       // If a profile object is passed, merge it with existing
       if (req.body.profile) {
-        user.profile = { ...user.profile, ...req.body.profile };
+        if (req.body.profile.fullName) user.profile.fullName = req.body.profile.fullName;
+        if (req.body.profile.phone) user.profile.phone = req.body.profile.phone;
+        if (req.body.profile.avatar !== undefined) user.profile.avatar = req.body.profile.avatar;
       }
 
       const updatedUser = await user.save();
@@ -24,7 +26,7 @@ const updateProfile = async (req, res) => {
       res.status(404).json({ success: false, message: "User not found" });
     }
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -42,7 +44,7 @@ const addAddress = async (req, res) => {
 
     res.json({ success: true, data: user.profile.addresses, message: "Address added successfully" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -63,7 +65,7 @@ const updateAddress = async (req, res) => {
 
     res.json({ success: true, data: user.profile.addresses, message: "Address updated successfully" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -82,7 +84,7 @@ const deleteAddress = async (req, res) => {
 
     res.json({ success: true, data: user.profile.addresses, message: "Address deleted successfully" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

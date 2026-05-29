@@ -51,7 +51,7 @@ const createRestaurant = async (req, res) => {
         message: "Restaurant registered successfully",
       });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -64,8 +64,17 @@ const getRestaurants = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const restaurants = await Restaurant.find().skip(skip).limit(limit).lean();
-    const total = await Restaurant.countDocuments();
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const query = {};
+    if (req.query.search) {
+      query.name = { $regex: escapeRegex(req.query.search), $options: "i" };
+    }
+    if (req.query.city) {
+      query.city = { $regex: escapeRegex(req.query.city), $options: "i" };
+    }
+
+    const restaurants = await Restaurant.find(query).skip(skip).limit(limit).lean();
+    const total = await Restaurant.countDocuments(query);
 
     res.json({
       success: true,
@@ -161,7 +170,7 @@ const updateRestaurant = async (req, res) => {
       message: "Updated successfully",
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

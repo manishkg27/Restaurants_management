@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const helmet = require("helmet");
 const setupSocket = require("./socket/socketHandler");
 const rateLimit = require('express-rate-limit');
 
@@ -36,6 +37,7 @@ app.set("io", io);
 setupSocket(io);
 
 // Middleware
+app.use(helmet());
 app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
@@ -60,13 +62,19 @@ app.use("/api/feedback", require("./routes/feedbackRoutes"));
 app.use("/api/managers", require("./routes/managerRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
+// 404 Catch-All Route
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
+
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  const isDev = process.env.NODE_ENV === "development";
   res.status(500).json({
     success: false,
-    message: err.message || "Server Error",
-    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    message: isDev ? (err.message || "Server Error") : "Internal Server Error",
+    stack: isDev ? err.stack : undefined,
   });
 });
 

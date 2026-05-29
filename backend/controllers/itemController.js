@@ -35,7 +35,7 @@ const createItem = async (req, res) => {
       .status(201)
       .json({ success: true, data: item, message: "Item added successfully" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -44,8 +44,17 @@ const createItem = async (req, res) => {
 // @access  Public
 const getItems = async (req, res) => {
   try {
-    const items = await Item.find().populate("restaurant", "name city").lean();
-    res.json({ success: true, data: items });
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const items = await Item.find()
+      .populate("restaurant", "name city")
+      .skip(skip)
+      .limit(limit)
+      .lean();
+      
+    res.json({ success: true, data: items, page, limit });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -67,17 +76,19 @@ const searchItems = async (req, res) => {
     } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     const matchStage = {};
-    if (itemName) matchStage.name = { $regex: itemName, $options: "i" };
+    if (itemName) matchStage.name = { $regex: escapeRegex(itemName), $options: "i" };
     if (restaurantName)
       matchStage["restaurantInfo.name"] = {
-        $regex: restaurantName,
+        $regex: escapeRegex(restaurantName),
         $options: "i",
       };
     if (location) {
       matchStage.$or = [
-        { "restaurantInfo.location": { $regex: location, $options: "i" } },
-        { "restaurantInfo.city": { $regex: location, $options: "i" } },
+        { "restaurantInfo.location": { $regex: escapeRegex(location), $options: "i" } },
+        { "restaurantInfo.city": { $regex: escapeRegex(location), $options: "i" } },
       ];
     }
     if (isVegetarian === 'true') {
@@ -153,12 +164,12 @@ const updateItem = async (req, res) => {
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.itemId,
       { ...req.body, image: imageUrl },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     res.json({ success: true, data: updatedItem, message: "Item updated successfully" });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

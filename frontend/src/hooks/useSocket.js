@@ -31,22 +31,22 @@ const useSocket = (user) => {
     };
   }, [user]);
 
-  const joinRoom = (roomName) => {
+  const joinRestaurantRoom = (restaurantId) => {
     if (socketRef.current) {
-      socketRef.current.emit("joinRoom", roomName);
-      // Wait, let's look at how the backend handles join.
-      // In backend controllers, it might use customized joining methods, or generic rooms.
-      // In the backend orderController we saw:
-      // io.to(`restaurant_${restaurantId}`).emit('newOrder', ...)
-      // io.to(`user_${order.user}`).emit('orderStatusUpdate', ...)
-      // Let's make sure we emit whatever custom event or standard action is expected.
-      // Let's check `backend/socket/socketHandler.js` to see what socket methods are expected.
+      socketRef.current.emit("joinRestaurantRoom", { restaurantId });
+    }
+  };
+
+  const joinUserRoom = (userId) => {
+    if (socketRef.current) {
+      socketRef.current.emit("joinUserRoom", { userId });
     }
   };
 
   const listen = (eventName, callback) => {
     if (socketRef.current) {
       socketRef.current.on(eventName, callback);
+      return () => socketRef.current.off(eventName, callback);
     }
   };
 
@@ -64,7 +64,8 @@ const useSocket = (user) => {
 
   return {
     socket: socketInstance,
-    joinRoom,
+    joinRestaurantRoom,
+    joinUserRoom,
     listen,
     stopListening,
     emit,
