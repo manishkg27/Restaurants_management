@@ -18,10 +18,12 @@ const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.io with CORS settings
+const ALLOWED_ORIGINS = [process.env.FRONTEND_URL || 'http://localhost:5173'];
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
   },
 });
 
@@ -32,7 +34,7 @@ app.set("io", io);
 setupSocket(io);
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json());
 
 // Routes Hookup
