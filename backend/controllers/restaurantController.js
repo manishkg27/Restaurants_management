@@ -36,8 +36,9 @@ const createRestaurant = async (req, res) => {
         );
     }
 
+    const { name, location, city, state, country, pinCode, restaurantContact, ownerContact, ownerName, ownerEmail, openTime, closeTime } = req.body;
     const restaurant = await Restaurant.create({
-      ...req.body,
+      name, location, city, state, country, pinCode, restaurantContact, ownerContact, ownerName, ownerEmail, openTime, closeTime,
       owner: req.user._id,
       restaurantImage: restaurantImageUrl,
     });
@@ -136,15 +137,21 @@ const updateRestaurant = async (req, res) => {
         });
     }
 
+    const { name, location, city, state, country, pinCode, restaurantContact, ownerContact, ownerName, ownerEmail, openTime, closeTime } = req.body;
+    const updateData = { name, location, city, state, country, pinCode, restaurantContact, ownerContact, ownerName, ownerEmail, openTime, closeTime };
+    
+    // Remove undefined fields to avoid unintentionally unsetting values
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
     if (req.files) {
       if (req.files.restaurantImage)
-        req.body.restaurantImage = await uploadToCloudinary(
+        updateData.restaurantImage = await uploadToCloudinary(
           req.files.restaurantImage[0].buffer,
           "eatify/restaurants",
         );
     }
 
-    restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, {
+    restaurant = await Restaurant.findByIdAndUpdate(req.params.id, updateData, {
       returnDocument: 'after',
       runValidators: true,
     });

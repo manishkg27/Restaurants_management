@@ -20,8 +20,8 @@ const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  const { user, token, isOwner } = useAuth();
-  const socketHook = useSocket(token);
+  const { user, isOwner } = useAuth();
+  const socketHook = useSocket(user);
 
   const fetchNotes = async () => {
     try {

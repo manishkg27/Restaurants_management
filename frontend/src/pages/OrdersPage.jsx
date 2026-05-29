@@ -26,13 +26,13 @@ const loadRazorpayScript = () => {
 };
 
 const OrdersPage = () => {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("current"); // 'current', 'payment-pending', 'delivered'
   const [selectedItemForFeedback, setSelectedItemForFeedback] = useState(null);
 
-  const socketHook = useSocket(token);
+  const socketHook = useSocket(user);
 
   const fetchOrders = async () => {
     setLoading(true);

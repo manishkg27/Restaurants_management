@@ -1,20 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:8000";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:8000";
 
-const useSocket = (token) => {
+const useSocket = (user) => {
   const socketRef = useRef(null);
   const [socketInstance, setSocketInstance] = useState(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
 
     // Connect to socket server
     socketRef.current = io(SOCKET_URL, {
-      auth: {
-        token: `Bearer ${token}`,
-      },
+      withCredentials: true,
     });
 
     socketRef.current.on("connect", () => {
@@ -31,7 +29,7 @@ const useSocket = (token) => {
         socketRef.current.disconnect();
       }
     };
-  }, [token]);
+  }, [user]);
 
   const joinRoom = (roomName) => {
     if (socketRef.current) {

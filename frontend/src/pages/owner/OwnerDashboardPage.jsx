@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 import "./OwnerDashboardPage.css";
 
 const OwnerDashboardPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ const OwnerDashboardPage = () => {
   const [endDate, setEndDate] = useState("");
   const [loadingTx, setLoadingTx] = useState(false);
 
-  const socketHook = useSocket(token);
+  const socketHook = useSocket(user);
 
   const fetchStatsAndRestaurant = async () => {
     try {

@@ -1,19 +1,21 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User"); // Adjust this path based on your folder structure
+const cookie = require("cookie");
 
 const initializeSocket = (io) => {
 
   // ✅ Completed Phase 8 Authentication Middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+      const token = cookies.eatify_token || socket.handshake.auth.token?.split(" ")[1];
 
-      if (!token || !token.startsWith("Bearer ")) {
+      if (!token) {
         return next(new Error("Authentication error: No token provided"));
       }
 
       // Extract the actual token string and verify it
-      const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Fetch the user to ensure they still exist in the database
       const user = await User.findById(decoded.id).select("-password");

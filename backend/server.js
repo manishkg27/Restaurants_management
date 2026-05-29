@@ -1,9 +1,11 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const setupSocket = require("./socket/socketHandler");
+const rateLimit = require('express-rate-limit');
 
 // Load env vars
 dotenv.config();
@@ -35,7 +37,16 @@ setupSocket(io);
 
 // Middleware
 app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
+
+// Rate Limiting
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
+const feedbackLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20, message: 'Too many feedback submissions, please try again later.' });
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/feedback', feedbackLimiter);
 
 // Routes Hookup
 app.use("/api/auth", require("./routes/authRoutes"));

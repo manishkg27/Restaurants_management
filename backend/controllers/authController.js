@@ -1,6 +1,15 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 
+const setTokenCookie = (res, token) => {
+  res.cookie("eatify_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -25,6 +34,7 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
+      setTokenCookie(res, generateToken(user._id));
       res.status(201).json({
         success: true,
         data: {
@@ -33,7 +43,6 @@ const registerUser = async (req, res) => {
           email: user.email,
           role: user.role,
           profile: user.profile,
-          token: generateToken(user._id),
         },
         message: "Registration successful",
       });
@@ -56,6 +65,7 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (user && (await user.matchPassword(password))) {
+      setTokenCookie(res, generateToken(user._id));
       res.json({
         success: true,
         data: {
@@ -64,7 +74,6 @@ const loginUser = async (req, res) => {
           email: user.email,
           role: user.role,
           profile: user.profile,
-          token: generateToken(user._id),
         },
         message: "Login successful",
       });
@@ -101,7 +110,10 @@ const getProfile = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = (req, res) => {
-  // Client discards the token. We return a standard success response.
+  res.cookie("eatify_token", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
   res.json({ success: true, message: "Logout successful" });
 };
 

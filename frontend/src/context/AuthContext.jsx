@@ -5,44 +5,33 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("eatify_token"));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const bootstrapAuth = async () => {
-      if (token) {
-        try {
-          const profileResponse = await getProfile();
+      try {
+        const profileResponse = await getProfile();
           if (profileResponse.success) {
             setUser(profileResponse.data);
           } else {
             // Clean up invalid token
-            localStorage.removeItem("eatify_token");
-            setToken(null);
-            setUser(null);
-          }
-        } catch (error) {
-          console.error("Bootstrap auth failed:", error);
-          localStorage.removeItem("eatify_token");
-          setToken(null);
-          setUser(null);
         }
+      } catch (error) {
+        console.error("Bootstrap auth failed:", error);
+        setUser(null);
       }
       setLoading(false);
     };
 
     bootstrapAuth();
-  }, [token]);
+  }, []);
 
   const login = async (credentials) => {
     setLoading(true);
     try {
       const response = await apiLogin(credentials);
       if (response.success && response.data) {
-        const { token: userToken, ...userData } = response.data;
-        localStorage.setItem("eatify_token", userToken);
-        setToken(userToken);
-        setUser(userData);
+        setUser(response.data);
         return { success: true, message: response.message };
       }
       return { success: false, message: response.message || "Failed to login" };
@@ -63,8 +52,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("API logout error:", error);
     } finally {
-      localStorage.removeItem("eatify_token");
-      setToken(null);
+      localStorage.removeItem("eatify_token"); // For backward compatibility / cleanup
       setUser(null);
     }
   };
@@ -75,7 +63,6 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    token,
     loading,
     login,
     logout,

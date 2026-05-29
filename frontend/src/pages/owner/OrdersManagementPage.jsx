@@ -10,13 +10,13 @@ import { ClipboardList, User, Phone, MapPin } from "lucide-react";
 import "./OrdersManagementPage.css";
 
 const OrdersManagementPage = () => {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("incoming"); // 'incoming', 'delivered', 'cancelled'
 
-  const socketHook = useSocket(token);
+  const socketHook = useSocket(user);
 
   const fetchOrdersAndRestaurant = async () => {
     try {

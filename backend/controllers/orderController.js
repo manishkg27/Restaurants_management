@@ -445,24 +445,7 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-// @desc    Mock pay for an order
-// @route   PATCH /api/orders/:orderId/pay
-// @access  Private (Customer)
-const payOrder = async (req, res) => {
-  try {
-    const order = await Order.findOne({ _id: req.params.orderId, user: req.user._id });
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
 
-    order.paymentStatus = true;
-    await order.save();
-
-    res.json({ success: true, message: "Payment successful" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 module.exports = {
   placeOrder,
@@ -472,5 +455,4 @@ module.exports = {
   getTransactions,
   getDashboardStats,
   cancelOrder,
-  payOrder,
 };
