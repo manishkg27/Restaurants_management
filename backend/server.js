@@ -7,6 +7,9 @@ const { Server } = require("socket.io");
 const helmet = require("helmet");
 const setupSocket = require("./socket/socketHandler");
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const crypto = require('crypto');
+const { errorHandler } = require('./middleware/errorHandler');
 
 // Load env vars
 dotenv.config();
@@ -36,6 +39,23 @@ app.set("io", io);
 // Initialize WebSocket handler
 setupSocket(io);
 
+// Request ID & Logging
+app.use((req, res, next) => {
+  req.id = crypto.randomUUID();
+  next();
+});
+
+morgan.token('id', function getId(req) {
+  return req.id;
+});
+
+const isDev = process.env.NODE_ENV === "development";
+if (isDev) {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan(':id :remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'));
+}
+
 // Middleware
 app.use(helmet());
 app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
@@ -46,21 +66,26 @@ app.use(cookieParser());
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many attempts, please try again later.' });
 const feedbackLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 20, message: 'Too many feedback submissions, please try again later.' });
 
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
-app.use('/api/feedback', feedbackLimiter);
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
+app.use('/api/v1/feedback', feedbackLimiter);
+
+// Health Check
+app.get('/api/v1/health', (req, res) => {
+  res.status(200).json({ success: true, message: "Server is healthy", timestamp: new Date() });
+});
 
 // Routes Hookup
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/restaurants", require("./routes/restaurantRoutes"));
-app.use("/api/items", require("./routes/itemRoutes"));
-app.use("/api/cart", require("./routes/cartRoutes"));
-app.use("/api/orders", require("./routes/orderRoutes"));
-app.use("/api/payments", require("./routes/paymentRoutes"));
-app.use("/api/feedback", require("./routes/feedbackRoutes"));
-app.use("/api/managers", require("./routes/managerRoutes"));
-app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/v1/auth", require("./routes/v1/authRoutes"));
+app.use("/api/v1/users", require("./routes/v1/userRoutes"));
+app.use("/api/v1/restaurants", require("./routes/v1/restaurantRoutes"));
+app.use("/api/v1/items", require("./routes/v1/itemRoutes"));
+app.use("/api/v1/cart", require("./routes/v1/cartRoutes"));
+app.use("/api/v1/orders", require("./routes/v1/orderRoutes"));
+app.use("/api/v1/payments", require("./routes/v1/paymentRoutes"));
+app.use("/api/v1/feedback", require("./routes/v1/feedbackRoutes"));
+app.use("/api/v1/managers", require("./routes/v1/managerRoutes"));
+app.use("/api/v1/notifications", require("./routes/v1/notificationRoutes"));
 
 // 404 Catch-All Route
 app.use((req, res, next) => {
@@ -68,15 +93,7 @@ app.use((req, res, next) => {
 });
 
 // Global Error Handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  const isDev = process.env.NODE_ENV === "development";
-  res.status(500).json({
-    success: false,
-    message: isDev ? (err.message || "Server Error") : "Internal Server Error",
-    stack: isDev ? err.stack : undefined,
-  });
-});
+app.use(errorHandler);
 
 // Important: Use server.listen instead of app.listen!
 const PORT = process.env.PORT || 8000;

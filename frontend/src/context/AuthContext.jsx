@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { login as apiLogin, getProfile, logout as apiLogout } from "../api/authAPI";
 
 const AuthContext = createContext(null);
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     bootstrapAuth();
   }, []);
 
-  const login = async (credentials) => {
+  const login = useCallback(async (credentials) => {
     setLoading(true);
     try {
       const response = await apiLogin(credentials);
@@ -44,9 +44,9 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await apiLogout();
     } catch (error) {
@@ -55,20 +55,20 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("eatify_token"); // For backward compatibility / cleanup
       setUser(null);
     }
-  };
+  }, []);
 
-  const isOwner = () => {
+  const isOwner = useCallback(() => {
     return user && user.role === "owner";
-  };
+  }, [user]);
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     loading,
     login,
     logout,
     isOwner,
     setUser,
-  };
+  }), [user, loading, login, logout, isOwner]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

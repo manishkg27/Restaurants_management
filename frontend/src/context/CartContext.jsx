@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "./AuthContext";
 import {
   getCart,
@@ -48,7 +48,7 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [fetchCart]);
 
-  const addToCart = async (itemId) => {
+  const addToCart = useCallback(async (itemId) => {
     if (!user) {
       toast.warning("Please login to add items to cart!");
       return { success: false, loginRequired: true };
@@ -75,9 +75,9 @@ export const CartProvider = ({ children }) => {
         return { success: false };
       }
     }
-  };
+  }, [user, fetchCart]);
 
-  const removeItem = async (cartId) => {
+  const removeItem = useCallback(async (cartId) => {
     try {
       const response = await removeFromCart(cartId);
       if (response.success) {
@@ -87,9 +87,9 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       toast.error("Failed to remove item");
     }
-  };
+  }, [fetchCart]);
 
-  const updateQty = async (cartId, quantity) => {
+  const updateQty = useCallback(async (cartId, quantity) => {
     try {
       const response = await updateCartQuantity(cartId, quantity);
       if (response.success) {
@@ -98,9 +98,9 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update quantity");
     }
-  };
+  }, [fetchCart]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     try {
       const response = await apiClearCart();
       if (response.success) {
@@ -113,9 +113,9 @@ export const CartProvider = ({ children }) => {
       toast.error("Failed to clear cart");
       return { success: false };
     }
-  };
+  }, []);
 
-  const confirmMismatchAction = async () => {
+  const confirmMismatchAction = useCallback(async () => {
     if (!mismatchData) return;
     try {
       // 1. Clear cart
@@ -133,11 +133,11 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       toast.error("Failed to clear and update cart");
     }
-  };
+  }, [mismatchData, fetchCart]);
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  const value = {
+  const value = useMemo(() => ({
     cartItems,
     cartTotal,
     cartCount,
@@ -151,7 +151,11 @@ export const CartProvider = ({ children }) => {
     updateQty,
     clearCart,
     confirmMismatchAction,
-  };
+  }), [
+    cartItems, cartTotal, cartCount, restaurantName, loading, 
+    showMismatchModal, mismatchData, addToCart, removeItem, 
+    updateQty, clearCart, confirmMismatchAction
+  ]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

@@ -7,7 +7,7 @@ import {
 } from "../../api/managerAPI";
 import { getMyRestaurant } from "../../api/restaurantAPI";
 import { toast } from "react-toastify";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { UserCheck, Building, ShieldCheck, Save } from "lucide-react";
 import "./ManagerProfilePage.css";
 

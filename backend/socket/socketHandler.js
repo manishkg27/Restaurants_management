@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User"); // Adjust this path based on your folder structure
+const Restaurant = require("../models/Restaurant");
 const cookie = require("cookie");
 
 const initializeSocket = (io) => {
@@ -37,13 +38,22 @@ const initializeSocket = (io) => {
     console.log(`New client connected: ${socket.user.username} (${socket.id})`);
 
     // Owner joins their specific restaurant room
-    socket.on("joinRestaurantRoom", ({ restaurantId }) => {
-      // Security Check: Ensure they are actually an owner
+    socket.on("joinRestaurantRoom", async ({ restaurantId }) => {
+      // Security Check: Ensure they are actually an owner and own the restaurant
       if (socket.user.role === "owner") {
-        socket.join(`restaurant_${restaurantId}`);
-        console.log(
-          `${socket.user.username} joined room: restaurant_${restaurantId}`,
-        );
+        try {
+          const restaurant = await Restaurant.findOne({ _id: restaurantId, owner: socket.user._id });
+          if (restaurant) {
+            socket.join(`restaurant_${restaurantId}`);
+            console.log(
+              `${socket.user.username} joined room: restaurant_${restaurantId}`,
+            );
+          } else {
+            console.log(`${socket.user.username} blocked from unauthorized room: restaurant_${restaurantId}`);
+          }
+        } catch (error) {
+          console.error("Error joining restaurant room:", error);
+        }
       }
     });
 

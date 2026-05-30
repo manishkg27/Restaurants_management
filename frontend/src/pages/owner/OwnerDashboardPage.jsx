@@ -3,8 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import { getDashboardStats, getTransactions } from "../../api/orderAPI";
 import { getMyRestaurant } from "../../api/restaurantAPI";
 import useSocket from "../../hooks/useSocket";
-import LoadingSpinner from "../../components/LoadingSpinner";
-import formatCurrency from "../../utils/formatCurrency";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import formatCurrency from "../../lib/formatCurrency";
 import { toast } from "react-toastify";
 import { 
   ClipboardList, 

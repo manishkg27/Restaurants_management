@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -8,30 +8,35 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 
 // Core Components
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import ProtectedRoute from "./components/ProtectedRoute";
-import OwnerRoute from "./components/OwnerRoute";
-import CartSidebar from "./components/CartSidebar";
-import RestaurantMismatchModal from "./components/RestaurantMismatchModal";
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import OwnerRoute from "./components/common/OwnerRoute";
+import CartSidebar from "./components/cart/CartSidebar";
+import RestaurantMismatchModal from "./components/cart/RestaurantMismatchModal";
+
+import ErrorBoundary from "./components/common/ErrorBoundary";
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
 // Customer Pages
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import RestaurantsPage from "./pages/RestaurantsPage";
-import RestaurantDetailPage from "./pages/RestaurantDetailPage";
-import SearchPage from "./pages/SearchPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrdersPage from "./pages/OrdersPage";
-import ProfilePage from "./pages/ProfilePage";
+const HomePage = lazy(() => import("./pages/customer/HomePage"));
+const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
+const RestaurantsPage = lazy(() => import("./pages/customer/RestaurantsPage"));
+const RestaurantDetailPage = lazy(() => import("./pages/customer/RestaurantDetailPage"));
+const SearchPage = lazy(() => import("./pages/customer/SearchPage"));
+const CheckoutPage = lazy(() => import("./pages/customer/CheckoutPage"));
+const OrdersPage = lazy(() => import("./pages/customer/OrdersPage"));
+const ProfilePage = lazy(() => import("./pages/customer/ProfilePage"));
+const OrderConfirmationPage = lazy(() => import("./pages/customer/OrderConfirmationPage"));
+const NotFoundPage = lazy(() => import("./pages/customer/NotFoundPage"));
 
 // Owner Pages
-import OwnerDashboardPage from "./pages/owner/OwnerDashboardPage";
-import RestaurantSetupPage from "./pages/owner/RestaurantSetupPage";
-import MenuManagementPage from "./pages/owner/MenuManagementPage";
-import OrdersManagementPage from "./pages/owner/OrdersManagementPage";
-import ManagerProfilePage from "./pages/owner/ManagerProfilePage";
+const OwnerDashboardPage = lazy(() => import("./pages/owner/OwnerDashboardPage"));
+const RestaurantSetupPage = lazy(() => import("./pages/owner/RestaurantSetupPage"));
+const MenuManagementPage = lazy(() => import("./pages/owner/MenuManagementPage"));
+const OrdersManagementPage = lazy(() => import("./pages/owner/OrdersManagementPage"));
+const ManagerProfilePage = lazy(() => import("./pages/owner/ManagerProfilePage"));
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -52,83 +57,98 @@ function App() {
 
             {/* Main Content Area */}
             <main style={{ flexGrow: 1 }}>
-              <Routes>
-                {/* Public Customer Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/restaurants" element={<RestaurantsPage />} />
-                <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-                <Route path="/search" element={<SearchPage />} />
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner fullPage />}>
+                  <Routes>
+                    {/* Public Customer Routes */}
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/restaurants" element={<RestaurantsPage />} />
+                    <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+                    <Route path="/search" element={<SearchPage />} />
 
-                {/* Protected Customer Routes */}
-                <Route
-                  path="/checkout"
-                  element={
-                    <ProtectedRoute>
-                      <CheckoutPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders"
-                  element={
-                    <ProtectedRoute>
-                      <OrdersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
+                    {/* Protected Customer Routes */}
+                    <Route
+                      path="/checkout"
+                      element={
+                        <ProtectedRoute>
+                          <CheckoutPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/orders"
+                      element={
+                        <ProtectedRoute>
+                          <OrdersPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/order-confirmation/:orderId"
+                      element={
+                        <ProtectedRoute>
+                          <OrderConfirmationPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                {/* Protected Owner Routes */}
-                <Route
-                  path="/owner/dashboard"
-                  element={
-                    <OwnerRoute>
-                      <OwnerDashboardPage />
-                    </OwnerRoute>
-                  }
-                />
-                <Route
-                  path="/owner/restaurant"
-                  element={
-                    <OwnerRoute>
-                      <RestaurantSetupPage />
-                    </OwnerRoute>
-                  }
-                />
-                <Route
-                  path="/owner/menu"
-                  element={
-                    <OwnerRoute>
-                      <MenuManagementPage />
-                    </OwnerRoute>
-                  }
-                />
-                <Route
-                  path="/owner/orders"
-                  element={
-                    <OwnerRoute>
-                      <OrdersManagementPage />
-                    </OwnerRoute>
-                  }
-                />
-                <Route
-                  path="/owner/manager"
-                  element={
-                    <OwnerRoute>
-                      <ManagerProfilePage />
-                    </OwnerRoute>
-                  }
-                />
-              </Routes>
+                    {/* Protected Owner Routes */}
+                    <Route
+                      path="/owner/dashboard"
+                      element={
+                        <OwnerRoute>
+                          <OwnerDashboardPage />
+                        </OwnerRoute>
+                      }
+                    />
+                    <Route
+                      path="/owner/restaurant"
+                      element={
+                        <OwnerRoute>
+                          <RestaurantSetupPage />
+                        </OwnerRoute>
+                      }
+                    />
+                    <Route
+                      path="/owner/menu"
+                      element={
+                        <OwnerRoute>
+                          <MenuManagementPage />
+                        </OwnerRoute>
+                      }
+                    />
+                    <Route
+                      path="/owner/orders"
+                      element={
+                        <OwnerRoute>
+                          <OrdersManagementPage />
+                        </OwnerRoute>
+                      }
+                    />
+                    <Route
+                      path="/owner/manager"
+                      element={
+                        <OwnerRoute>
+                          <ManagerProfilePage />
+                        </OwnerRoute>
+                      }
+                    />
+                    
+                    {/* 404 Catch-All */}
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
             </main>
 
             {/* Global Footer */}

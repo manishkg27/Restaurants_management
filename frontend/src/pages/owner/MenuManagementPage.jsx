@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { getMyRestaurant } from "../../api/restaurantAPI";
 import { createItem, updateItem, deleteItem } from "../../api/itemAPI";
 import { toast } from "react-toastify";
-import LoadingSpinner from "../../components/LoadingSpinner";
-import formatCurrency from "../../utils/formatCurrency";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import formatCurrency from "../../lib/formatCurrency";
 import { Store, Plus, X, IndianRupee, FileText, Image as ImageIcon, Save, Check, Edit, Trash2 } from "lucide-react";
 import "./MenuManagementPage.css";
 

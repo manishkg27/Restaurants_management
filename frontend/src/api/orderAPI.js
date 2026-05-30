@@ -31,7 +31,7 @@ export const getRestaurantOrders = async () => {
 
 export const updateDeliveryStatus = async (orderId, deliveryStatus) => {
   const response = await API.patch(`/orders/${orderId}/delivery`, {
-    deliveryStatus,
+    status: deliveryStatus,
   });
   return response.data;
 };

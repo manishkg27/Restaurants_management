@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getMyRestaurant, createRestaurant, updateRestaurant } from "../../api/restaurantAPI";
 import { toast } from "react-toastify";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { Store, MapPin, Phone, Image as ImageIcon, Save, User, Mail, Clock, Globe, Map } from "lucide-react";
 import "./RestaurantSetupPage.css";
 
