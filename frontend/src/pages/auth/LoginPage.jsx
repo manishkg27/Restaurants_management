@@ -85,6 +85,11 @@ const LoginPage = () => {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            <div style={{ textAlign: "right", marginTop: "8px" }}>
+              <Link to="/forgot-password" style={{ fontSize: "0.85rem", color: "#ea580c", textDecoration: "none" }}>
+                Forgot Password?
+              </Link>
+            </div>
           </div>
 
           <button

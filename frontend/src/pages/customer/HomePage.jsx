@@ -144,7 +144,7 @@ const HomePage = () => {
         <div className="home__restaurants-header">
           <div>
             <h2 className="home__restaurants-title">Featured Restaurants</h2>
-            <p className="home__restaurants-subtitle">Eateries registered in the MERN database system</p>
+            
           </div>
           <Link to="/restaurants" className="home__restaurants-link">
             View All
