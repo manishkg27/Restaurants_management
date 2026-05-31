@@ -67,7 +67,7 @@
   top: 0.75rem;
   transform: none;
 }
-.checkout-page__input, .checkout-page__textarea {
+.checkout-page__input,  .checkout-page__textarea {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid var(--color-border-hover);
@@ -81,7 +81,7 @@
 .checkout-page__textarea {
   resize: none;
 }
-.checkout-page__input:focus, .checkout-page__textarea:focus {
+.checkout-page__input:focus,  .checkout-page__textarea:focus {
   border-color: var(--color-primary);
 }
 .checkout-page__button {

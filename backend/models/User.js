@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema(
     },
     profile: {
       fullName: { type: String, default: "", maxlength: 100 },
+      avatar: { type: String, default: "" },
       contactNumber: {
         type: String,
         default: "",

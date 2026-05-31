@@ -72,19 +72,11 @@
   transform: translateY(-50%);
   color: var(--color-text-muted);
 }
-.restaurant-setup__input-icon--top {
-  top: 1.25rem;
-  transform: none;
-}
 .restaurant-setup__input {
   padding-inline-start: 2.25rem;
 }
 .restaurant-setup__input--file {
   padding-block-start: 0.5rem;
-}
-.restaurant-setup__textarea {
-  padding-block-start: 0.875rem;
-  resize: none;
 }
 .restaurant-setup__status-text {
   font-size: 0.75rem;

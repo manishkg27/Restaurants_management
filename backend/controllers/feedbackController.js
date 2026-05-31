@@ -1,6 +1,6 @@
 const Feedback = require("../models/Feedback");
 const Item = require("../models/Item");
-const Order = require("../models/Order");
+const Restaurant = require("../models/Restaurant");
 
 const recalculateItemRating = async (itemId) => {
   const stats = await Feedback.aggregate([
@@ -21,6 +21,27 @@ const recalculateItemRating = async (itemId) => {
     });
   }
 };
+
+const recalculateRestaurantRating = async (restaurantId) => {
+  const stats = await Feedback.aggregate([
+    { $match: { restaurant: restaurantId } },
+    {
+      $group: {
+        _id: "$restaurant",
+        averageRating: { $avg: "$rating" },
+        totalRatings: { $sum: 1 },
+      },
+    },
+  ]);
+
+  if (stats.length > 0) {
+    await Restaurant.findByIdAndUpdate(restaurantId, {
+      averageRating: Math.round(stats[0].averageRating * 10) / 10,
+      totalRatings: stats[0].totalRatings,
+    });
+  }
+};
+
 // @desc    Submit feedback/rating for a food item
 // @route   POST /api/feedback
 // @access  Private
@@ -48,6 +69,7 @@ const submitFeedback = async (req, res) => {
       feedback = await Feedback.create({
         user: userId,
         item: itemId,
+        restaurant: item.restaurant,
         order: orderId,
         rating,
         experience,
@@ -66,6 +88,7 @@ const submitFeedback = async (req, res) => {
 
     // 4. Recalculate the exact average rating
     await recalculateItemRating(item._id);
+    await recalculateRestaurantRating(item.restaurant);
 
     res.status(201).json({
       success: true,
@@ -156,6 +179,7 @@ const updateFeedback = async (req, res) => {
 
     // Recalculate average rating
     await recalculateItemRating(feedback.item);
+    await recalculateRestaurantRating(feedback.restaurant);
 
     res.json({
       success: true,

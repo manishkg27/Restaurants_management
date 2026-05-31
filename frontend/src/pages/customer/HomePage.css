@@ -201,12 +201,6 @@
   margin: 0;
 }
 
-.home__restaurants-subtitle {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin: 0.25rem 0 0 0;
-}
-
 .home__restaurants-link {
   background-color: var(--color-bg-base);
   color: var(--color-text-base);

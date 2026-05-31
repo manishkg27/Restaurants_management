@@ -69,6 +69,26 @@
 .auth-page__input:focus {
   border-color: var(--color-primary);
 }
+.auth-page__input--password {
+  padding-right: 2.5rem;
+}
+.auth-page__password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.auth-page__password-toggle:hover {
+  color: var(--color-text-base);
+}
 select.auth-page__input {
   appearance: none;
 }

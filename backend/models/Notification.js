@@ -32,5 +32,7 @@ const notificationSchema = new mongoose.Schema(
 
 // Index for fast querying user's notifications sorted by date
 notificationSchema.index({ recipient: 1, createdAt: -1 });
+// TTL Index for auto-deletion after 30 days (2592000 seconds)
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });
 
 module.exports = mongoose.model("Notification", notificationSchema);

@@ -52,7 +52,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("API logout error:", error);
     } finally {
-      localStorage.removeItem("eatify_token"); // For backward compatibility / cleanup
       setUser(null);
     }
   }, []);

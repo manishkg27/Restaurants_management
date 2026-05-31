@@ -11,7 +11,8 @@ const updateProfile = async (req, res) => {
       // If a profile object is passed, merge it with existing
       if (req.body.profile) {
         if (req.body.profile.fullName) user.profile.fullName = req.body.profile.fullName;
-        if (req.body.profile.phone) user.profile.phone = req.body.profile.phone;
+        if (req.body.profile.phone) user.profile.contactNumber = req.body.profile.phone;
+        if (req.body.profile.contactNumber) user.profile.contactNumber = req.body.profile.contactNumber;
         if (req.body.profile.avatar !== undefined) user.profile.avatar = req.body.profile.avatar;
       }
 

@@ -93,16 +93,19 @@ const RegisterPage = () => {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                className="auth-page__input"
+                className="auth-page__input auth-page__input--password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Create a password"
                 required
+                minLength={6}
               />
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 10px', color: '#6b7280' }}
+                className="auth-page__password-toggle"
+                title={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

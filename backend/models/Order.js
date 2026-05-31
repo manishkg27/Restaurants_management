@@ -49,8 +49,10 @@ const orderSchema = new mongoose.Schema(
 );
 
 // Indexes for fast querying (User history, Restaurant dashboard)
-orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ restaurant: 1, createdAt: -1 });
+orderSchema.index({ user: 1, paymentStatus: 1, deliveryStatus: 1, createdAt: -1 });
+orderSchema.index({ restaurant: 1, paymentStatus: 1, deliveryStatus: 1, createdAt: -1 });
+orderSchema.index({ user: 1, createdAt: -1 }); // Fallback if no status filters
+orderSchema.index({ restaurant: 1, createdAt: -1 }); // Fallback if no status filters
 orderSchema.index({ paymentStatus: 1, deliveryStatus: 1 });
 orderSchema.index({ razorpayOrderId: 1 });
 

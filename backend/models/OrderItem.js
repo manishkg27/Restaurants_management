@@ -32,6 +32,10 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -40,5 +44,6 @@ const orderItemSchema = new mongoose.Schema(
 
 orderItemSchema.index({ order: 1 });
 orderItemSchema.index({ item: 1 });
+orderItemSchema.index({ deletedAt: 1 });
 
 module.exports = mongoose.model("OrderItem", orderItemSchema);

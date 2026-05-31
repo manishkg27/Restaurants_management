@@ -34,6 +34,14 @@ const restaurantSchema = new mongoose.Schema(
       enum: ["active", "deleted"],
       default: "active",
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    totalRatings: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

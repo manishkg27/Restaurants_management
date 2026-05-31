@@ -52,7 +52,7 @@
 /* ==========================================================================
    CSS Resets & Base Styles
    ========================================================================== */
-*, *::before, *::after {
+*,  *::before,  *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -84,11 +84,11 @@ button {
   font-family: inherit;
 }
 
-ul, ol {
+ul,  ol {
   list-style: none;
 }
 
-img, svg {
+img,  svg {
   display: block;
   max-width: 100%;
 }
@@ -96,7 +96,7 @@ img, svg {
 /* ==========================================================================
    Typography
    ========================================================================== */
-h1, h2, h3, h4, h5, h6 {
+h1,  h2,  h3,  h4,  h5,  h6 {
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: var(--spacing-sm);
@@ -110,16 +110,6 @@ h4 { font-size: 1rem; }
 /* ==========================================================================
    Utilities (Strictly necessary ones)
    ========================================================================== */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
 
 /* ==========================================================================
    Shared Components (BEM)
@@ -200,10 +190,3 @@ h4 { font-size: 1rem; }
 }
 
 /* Layout Classes */
-.flex-row { display: flex; flex-direction: row; }
-.flex-col { display: flex; flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.gap-sm { gap: var(--spacing-sm); }
-.gap-md { gap: var(--spacing-md); }

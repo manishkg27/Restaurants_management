@@ -20,7 +20,7 @@ const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, isRestaurantStaff } = useAuth();
   const socketHook = useSocket(user);
 
   const fetchNotes = async () => {
@@ -112,7 +112,7 @@ const NotificationDropdown = () => {
       }
     }
     setIsOpen(false);
-    if (isOwner()) {
+    if (isRestaurantStaff()) {
       navigate("/owner/orders");
     } else {
       navigate("/orders");

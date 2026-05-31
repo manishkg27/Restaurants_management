@@ -14,12 +14,12 @@ class OrderService {
     session.startTransaction();
 
     try {
-      const cartItems = await Cart.find({ user: userId }).session(session);
-      if (cartItems.length === 0) {
+      const cart = await Cart.findOne({ user: userId }).session(session);
+      if (!cart || cart.items.length === 0) {
         throw { statusCode: 400, message: "Cart is empty" };
       }
 
-      const restaurantId = cartItems[0].restaurant;
+      const restaurantId = cart.restaurant;
       const restaurant = await Restaurant.findById(restaurantId).session(session);
       if (!restaurant || restaurant.status === "deleted") {
         throw { statusCode: 400, message: "This restaurant is no longer active and cannot accept orders" };
@@ -28,7 +28,7 @@ class OrderService {
       let orderTotalPrice = 0;
       const orderItemsData = [];
 
-      for (const cartItem of cartItems) {
+      for (const cartItem of cart.items) {
         const dbItem = await Item.findById(cartItem.item).session(session);
         if (!dbItem) throw new Error(`Item ${cartItem.item} no longer exists`);
 
@@ -189,7 +189,7 @@ class OrderService {
     await order.save();
 
     if (deliveryStatus === 'cancelled') {
-      await OrderItem.deleteMany({ order: order._id });
+      await OrderItem.updateMany({ order: order._id }, { $set: { deletedAt: new Date() } });
     }
 
     if (io) {
@@ -275,7 +275,7 @@ class OrderService {
 
     order.deliveryStatus = "cancelled";
     await order.save();
-    await OrderItem.deleteMany({ order: order._id });
+    await OrderItem.updateMany({ order: order._id }, { $set: { deletedAt: new Date() } });
 
     return true;
   }

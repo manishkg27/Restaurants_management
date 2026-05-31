@@ -25,50 +25,56 @@ const addToCart = async (req, res) => {
         .json({ success: false, message: "This restaurant is no longer active" });
     }
 
-    // 2. Check user's current cart state
-    const existingCartItem = await Cart.findOne({ user: userId });
+    let cart = await Cart.findOne({ user: userId });
 
-    // 3. Conflict Detection: If cart has items from a different restaurant
-    if (
-      existingCartItem &&
-      existingCartItem.restaurant.toString() !== item.restaurant.toString()
-    ) {
-      const currentRestaurant = await Restaurant.findById(
-        existingCartItem.restaurant,
-      ).select("name");
-      const newRestaurant = await Restaurant.findById(item.restaurant).select(
-        "name",
+    if (cart) {
+      // Conflict Detection: If cart has items from a different restaurant
+      if (cart.restaurant.toString() !== item.restaurant.toString()) {
+        if (cart.items.length > 0) {
+          const currentRestaurant = await Restaurant.findById(
+            cart.restaurant
+          ).select("name");
+          const newRestaurant = { name: restaurant.name, _id: restaurant._id };
+          
+          return res.status(409).json({
+            success: false,
+            conflict: "RESTAURANT_MISMATCH",
+            message:
+              "Your cart contains items from a different restaurant. Clear cart to add this item.",
+            currentRestaurant,
+            newRestaurant,
+          });
+        } else {
+          // If cart is empty but belongs to a different restaurant (edge case), update it
+          cart.restaurant = item.restaurant;
+        }
+      }
+
+      // Duplicate Check
+      const existingItemIndex = cart.items.findIndex(
+        (cartItem) => cartItem.item.toString() === itemId
       );
 
-      return res.status(409).json({
-        success: false,
-        conflict: "RESTAURANT_MISMATCH",
-        message:
-          "Your cart contains items from a different restaurant. Clear cart to add this item.",
-        currentRestaurant,
-        newRestaurant,
+      if (existingItemIndex > -1) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Item is already in your cart" });
+      }
+
+      cart.items.push({ item: itemId, quantity: 1 });
+      await cart.save();
+    } else {
+      // Create new cart
+      cart = await Cart.create({
+        user: userId,
+        restaurant: item.restaurant,
+        items: [{ item: itemId, quantity: 1 }],
       });
     }
 
-    // 4. Duplicate Check: Prevent adding the exact same item twice
-    const duplicateItem = await Cart.findOne({ user: userId, item: itemId });
-    if (duplicateItem) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Item is already in your cart" });
-    }
-
-    // 5. Success: Create cart entry
-    const cartEntry = await Cart.create({
-      user: userId,
-      item: itemId,
-      restaurant: item.restaurant,
-      quantity: 1,
-    });
-
     res
       .status(201)
-      .json({ success: true, data: cartEntry, message: "Item added to cart" });
+      .json({ success: true, data: cart, message: "Item added to cart" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -81,60 +87,51 @@ const getCart = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Using MongoDB Aggregation Pipeline from the DDD
-    const cartItems = await Cart.aggregate([
-      { $match: { user: new mongoose.Types.ObjectId(userId) } },
-      {
-        $lookup: {
-          from: "items",
-          localField: "item",
-          foreignField: "_id",
-          as: "itemInfo",
+    const cart = await Cart.findOne({ user: userId })
+      .populate("restaurant", "name")
+      .populate("items.item", "name price image");
+
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          items: [],
+          cartTotal: 0,
+          restaurantName: null,
         },
-      },
-      { $unwind: "$itemInfo" },
-      {
-        $lookup: {
-          from: "restaurants",
-          localField: "restaurant",
-          foreignField: "_id",
-          as: "restaurantInfo",
-        },
-      },
-      { $unwind: "$restaurantInfo" },
-      {
-        $addFields: {
-          lineTotal: { $multiply: ["$quantity", "$itemInfo.price"] },
-        },
-      },
-      {
-        $project: {
-          quantity: 1,
-          lineTotal: 1,
-          "itemInfo.name": 1,
-          "itemInfo.price": 1,
-          "itemInfo.image": 1,
-          "itemInfo._id": 1,
-          "restaurantInfo.name": 1,
-          "restaurantInfo._id": 1,
-        },
-      },
-    ]);
+      });
+    }
 
     let cartTotal = 0;
-    let restaurantName = null;
-
-    if (cartItems.length > 0) {
-      cartTotal = cartItems.reduce((acc, item) => acc + item.lineTotal, 0);
-      restaurantName = cartItems[0].restaurantInfo.name;
-    }
+    const formattedItems = cart.items.map((cartItem) => {
+      // Handle cases where item might have been deleted from DB
+      if (!cartItem.item) return null;
+      
+      const lineTotal = cartItem.quantity * cartItem.item.price;
+      cartTotal += lineTotal;
+      return {
+        _id: cartItem._id,
+        quantity: cartItem.quantity,
+        lineTotal,
+        itemInfo: {
+          _id: cartItem.item._id,
+          name: cartItem.item.name,
+          price: cartItem.item.price,
+          image: cartItem.item.image,
+        },
+        restaurantInfo: {
+          _id: cart.restaurant._id,
+          name: cart.restaurant.name,
+        },
+      };
+    }).filter(Boolean);
 
     res.json({
       success: true,
       data: {
-        items: cartItems,
+        items: formattedItems,
         cartTotal,
-        restaurantName,
+        restaurantName: cart.restaurant.name,
       },
     });
   } catch (error) {
@@ -148,6 +145,7 @@ const getCart = async (req, res) => {
 const updateCartQuantity = async (req, res) => {
   try {
     const { quantity } = req.body;
+    const cartId = req.params.cartId; // This is the subdocument _id in the items array
 
     if (quantity < 1 || quantity > 50) {
       return res
@@ -156,9 +154,9 @@ const updateCartQuantity = async (req, res) => {
     }
 
     const updatedCart = await Cart.findOneAndUpdate(
-      { _id: req.params.cartId, user: req.user._id },
-      { quantity },
-      { returnDocument: 'after', runValidators: true },
+      { user: req.user._id, "items._id": cartId },
+      { $set: { "items.$.quantity": quantity } },
+      { new: true, runValidators: true }
     );
 
     if (!updatedCart) {
@@ -178,15 +176,23 @@ const updateCartQuantity = async (req, res) => {
 // @access  Private
 const removeFromCart = async (req, res) => {
   try {
-    const deletedCart = await Cart.findOneAndDelete({
-      _id: req.params.cartId,
-      user: req.user._id,
-    });
+    const cartId = req.params.cartId;
 
-    if (!deletedCart) {
+    const cart = await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { $pull: { items: { _id: cartId } } },
+      { new: true }
+    );
+
+    if (!cart) {
       return res
         .status(404)
-        .json({ success: false, message: "Cart item not found" });
+        .json({ success: false, message: "Cart not found" });
+    }
+    
+    // Optionally remove the cart if it's empty
+    if (cart.items.length === 0) {
+      await Cart.findOneAndDelete({ user: req.user._id });
     }
 
     res.json({ success: true, message: "Item removed from cart" });
@@ -200,11 +206,11 @@ const removeFromCart = async (req, res) => {
 // @access  Private
 const clearCart = async (req, res) => {
   try {
-    const result = await Cart.deleteMany({ user: req.user._id });
+    const result = await Cart.findOneAndDelete({ user: req.user._id });
     res.json({
       success: true,
       message: "Cart cleared successfully",
-      deletedCount: result.deletedCount,
+      deletedCount: result ? 1 : 0,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

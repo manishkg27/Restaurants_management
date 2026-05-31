@@ -83,11 +83,7 @@
   transform: translateY(-50%);
   color: var(--color-text-light);
 }
-.profile-page__input-icon--textarea {
-  top: 0.75rem;
-  transform: none;
-}
-.profile-page__input, .profile-page__textarea {
+.profile-page__input,  .profile-page__textarea {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border: 1px solid var(--color-border-hover);
@@ -101,7 +97,7 @@
 .profile-page__textarea {
   resize: none;
 }
-.profile-page__input:focus, .profile-page__textarea:focus {
+.profile-page__input:focus,  .profile-page__textarea:focus {
   border-color: var(--color-primary);
 }
 .profile-page__button {

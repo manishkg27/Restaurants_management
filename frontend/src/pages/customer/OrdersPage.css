@@ -124,15 +124,8 @@
 .orders-page__status-text {
   text-transform: capitalize;
 }
-.orders-page__status-text--delivered {
-  color: #16a34a;
-}
-.orders-page__status-text--active {
-  color: var(--color-primary);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
+  0%,  100% { opacity: 1; }
   50% { opacity: .5; }
 }
 .orders-page__items {

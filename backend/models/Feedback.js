@@ -12,6 +12,11 @@ const feedbackSchema = new mongoose.Schema(
       ref: "Item",
       required: [true, "Feedback must reference an item"],
     },
+    restaurant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Restaurant",
+      required: [true, "Feedback must reference a restaurant"],
+    },
     order: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",
@@ -36,6 +41,7 @@ const feedbackSchema = new mongoose.Schema(
 
 // Indexes
 feedbackSchema.index({ item: 1, createdAt: -1 }); // Fast loading of item reviews
+feedbackSchema.index({ restaurant: 1, createdAt: -1 }); // Fast loading of restaurant reviews
 feedbackSchema.index({ user: 1 }); // Find all reviews by a user
 feedbackSchema.index({ user: 1, item: 1, order: 1 }, { unique: true }); // Prevent multiple reviews from same user on same item in the same order
 
