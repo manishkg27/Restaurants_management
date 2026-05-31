@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import "./LoginPage.css";
+import { resendVerification } from "../../api/authAPI";
 import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
@@ -27,6 +28,24 @@ const LoginPage = () => {
       navigate("/");
     } else {
       toast.error(result.message || "Failed to login");
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      toast.error("Please enter your email address to resend verification");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await resendVerification(email);
+      if (result.success) {
+        toast.success(result.message || "Verification email resent successfully");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to resend verification");
+    } finally {
       setLoading(false);
     }
   };
@@ -86,7 +105,15 @@ const LoginPage = () => {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            <div style={{ textAlign: "right", marginTop: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+              <button 
+                type="button" 
+                onClick={handleResendVerification}
+                disabled={loading}
+                style={{ background: 'none', border: 'none', padding: 0, fontSize: "0.85rem", color: "#ea580c", cursor: loading ? "not-allowed" : "pointer" }}
+              >
+                Resend Verification?
+              </button>
               <Link to="/forgot-password" style={{ fontSize: "0.85rem", color: "#ea580c", textDecoration: "none" }}>
                 Forgot Password?
               </Link>
