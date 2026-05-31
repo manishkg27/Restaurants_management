@@ -43,7 +43,7 @@ const registerUser = async (req, res) => {
       await user.save({ validateBeforeSave: false });
 
       // Create verification url
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
       const verificationUrl = `${frontendUrl}/verify-email/${verificationToken}`;
 
       const message = `You are receiving this email because you (or someone else) have requested the registration of an account. Please click on the following link to verify your email address:\n\n${verificationUrl}`;
@@ -57,14 +57,17 @@ const registerUser = async (req, res) => {
 
         res.status(201).json({
           success: true,
-          message: "Registration successful. Please check your email to verify your account.",
+          message:
+            "Registration successful. Please check your email to verify your account.",
         });
       } catch (error) {
         user.emailVerificationToken = undefined;
         user.emailVerificationExpires = undefined;
         await user.save({ validateBeforeSave: false });
 
-        res.status(500).json({ success: false, message: "Email could not be sent" });
+        res
+          .status(500)
+          .json({ success: false, message: "Email could not be sent" });
       }
     } else {
       res.status(400).json({ success: false, message: "Invalid user data" });
@@ -91,15 +94,45 @@ const loginUser = async (req, res) => {
     }
 
     if (!user.isEmailVerified) {
-      return res.status(401).json({ success: false, message: "Please verify your email address to login." });
+      // Auto-send verification link when unverified user tries to login
+      const verificationToken = user.getEmailVerificationToken();
+      await user.save({ validateBeforeSave: false });
+
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      const verificationUrl = `${frontendUrl}/verify-email/${verificationToken}`;
+
+      const message = `Please click on the following link to verify your email address:\n\n${verificationUrl}`;
+
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: "Email Verification",
+          message,
+        });
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError.message);
+      }
+
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message:
+            "Please verify your email address to login. A verification link has been sent.",
+        });
     }
 
-    if (user.role === 'manager') {
+    if (user.role === "manager") {
       const managerProfile = await Manager.findOne({ user: user._id });
       if (managerProfile) {
         const restaurant = await Restaurant.findById(managerProfile.restaurant);
-        if (restaurant && restaurant.status === 'deleted') {
-          return res.status(401).json({ success: false, message: "This restaurant is no longer active." });
+        if (restaurant && restaurant.status === "deleted") {
+          return res
+            .status(401)
+            .json({
+              success: false,
+              message: "This restaurant is no longer active.",
+            });
         }
       }
     }
@@ -138,7 +171,9 @@ const verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token" });
     }
 
     user.isEmailVerified = true;
@@ -164,7 +199,9 @@ const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "There is no user with that email" });
+      return res
+        .status(404)
+        .json({ success: false, message: "There is no user with that email" });
     }
 
     // Get reset token
@@ -172,7 +209,7 @@ const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset url
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     const message = `You are receiving this email because you (or someone else) have requested the reset of a password. Please click on the following link to complete the process:\n\n${resetUrl}`;
@@ -190,7 +227,9 @@ const forgotPassword = async (req, res) => {
       user.resetPasswordExpires = undefined;
       await user.save({ validateBeforeSave: false });
 
-      return res.status(500).json({ success: false, message: "Email could not be sent" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Email could not be sent" });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -214,19 +253,21 @@ const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token" });
     }
 
     // Set new password
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    
+
     // Automatically verify email since they proved ownership to reset password
     if (!user.isEmailVerified) {
       user.isEmailVerified = true;
     }
-    
+
     await user.save(); // password hashing happens here because of pre('save') hook
 
     res.status(200).json({
@@ -238,7 +279,6 @@ const resetPassword = async (req, res) => {
   }
 };
 
-
 // @desc    Resend Verification Email
 // @route   POST /api/auth/resend-verification
 // @access  Public
@@ -248,11 +288,15 @@ const resendVerification = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     if (user.isEmailVerified) {
-      return res.status(400).json({ success: false, message: "Email is already verified" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email is already verified" });
     }
 
     // Generate new token
@@ -260,7 +304,7 @@ const resendVerification = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create verification url
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const verificationUrl = `${frontendUrl}/verify-email/${verificationToken}`;
 
     const message = `Please click on the following link to verify your email address:\n\n${verificationUrl}`;
@@ -272,13 +316,20 @@ const resendVerification = async (req, res) => {
         message,
       });
 
-      res.status(200).json({ success: true, message: "Verification email resent successfully" });
+      res
+        .status(200)
+        .json({
+          success: true,
+          message: "Verification email resent successfully",
+        });
     } catch (error) {
       user.emailVerificationToken = undefined;
       user.emailVerificationExpires = undefined;
       await user.save({ validateBeforeSave: false });
 
-      return res.status(500).json({ success: false, message: "Email could not be sent" });
+      return res
+        .status(500)
+        .json({ success: false, message: "Email could not be sent" });
     }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -315,6 +366,57 @@ const logoutUser = (req, res) => {
   res.json({ success: true, message: "Logout successful" });
 };
 
+// @desc    Verify manager email & set password (combined flow)
+// @route   PUT /api/auth/setup-manager/:token
+// @access  Public
+const verifyAndSetupManager = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    // Hash the token from params to match the stored hashed token
+    const emailVerificationToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      emailVerificationToken,
+      emailVerificationExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid or expired token. Please ask the restaurant owner to resend the setup link.",
+      });
+    }
+
+    // Verify email + set password + clear token
+    user.isEmailVerified = true;
+    user.password = password;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+
+    await user.save(); // password hashing happens in pre('save') hook
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Account verified and password set successfully. You can now login.",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -324,4 +426,5 @@ module.exports = {
   resetPassword,
   getProfile,
   logoutUser,
+  verifyAndSetupManager,
 };

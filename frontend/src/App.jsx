@@ -26,6 +26,7 @@ const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
 const SetupPasswordPage = lazy(() => import("./pages/auth/SetupPasswordPage"));
+const SetupManagerPage = lazy(() => import("./pages/auth/SetupManagerPage"));
 const VerifyEmailPage = lazy(() => import("./pages/auth/VerifyEmailPage"));
 const RestaurantsPage = lazy(() => import("./pages/customer/RestaurantsPage"));
 const RestaurantDetailPage = lazy(() => import("./pages/customer/RestaurantDetailPage"));
@@ -72,6 +73,7 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                     <Route path="/setup-password/:token" element={<SetupPasswordPage />} />
+                    <Route path="/setup-manager/:token" element={<SetupManagerPage />} />
                     <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
                     <Route path="/restaurants" element={<RestaurantsPage />} />
                     <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />

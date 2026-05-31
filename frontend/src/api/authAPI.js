@@ -34,3 +34,8 @@ export const resetPassword = async (token, password) => {
   const response = await API.put(`/auth/reset-password/${token}`, { password });
   return response.data;
 };
+
+export const setupManager = async (token, password) => {
+  const response = await API.put(`/auth/setup-manager/${token}`, { password });
+  return response.data;
+};
