@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { verifyEmail } from "../../api/authAPI";
 import { toast } from "react-toastify";
@@ -10,8 +10,12 @@ const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const hasFetched = useRef(false);
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     const verify = async () => {
       try {
         const response = await verifyEmail(token);

@@ -61,14 +61,19 @@ export const AuthProvider = ({ children }) => {
     return user && user.role === "owner";
   }, [user]);
 
+  const isRestaurantStaff = useCallback(() => {
+    return user && (user.role === "owner" || user.role === "manager");
+  }, [user]);
+
   const value = useMemo(() => ({
     user,
     loading,
     login,
     logout,
     isOwner,
+    isRestaurantStaff,
     setUser,
-  }), [user, loading, login, logout, isOwner]);
+  }), [user, loading, login, logout, isOwner, isRestaurantStaff]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

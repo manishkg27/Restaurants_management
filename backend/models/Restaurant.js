@@ -29,6 +29,11 @@ const restaurantSchema = new mongoose.Schema(
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
     restaurantImage: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["active", "deleted"],
+      default: "active",
+    },
   },
   { timestamps: true },
 );

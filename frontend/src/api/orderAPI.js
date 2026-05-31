@@ -7,7 +7,7 @@ export const placeOrder = async (payload) => {
 
 export const getMyOrders = async (status) => {
   const response = await API.get("/orders/my-orders", {
-    params: { status },
+    params: { status, _t: Date.now() },
   });
   return response.data;
 };

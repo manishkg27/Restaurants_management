@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 const User = require("../models/User");
+const Manager = require("../models/Manager");
+const Restaurant = require("../models/Restaurant");
 const generateToken = require("../utils/generateToken");
 const sendEmail = require("../utils/sendEmail");
 
@@ -90,6 +92,16 @@ const loginUser = async (req, res) => {
 
     if (!user.isEmailVerified) {
       return res.status(401).json({ success: false, message: "Please verify your email address to login." });
+    }
+
+    if (user.role === 'manager') {
+      const managerProfile = await Manager.findOne({ user: user._id });
+      if (managerProfile) {
+        const restaurant = await Restaurant.findById(managerProfile.restaurant);
+        if (restaurant && restaurant.status === 'deleted') {
+          return res.status(401).json({ success: false, message: "This restaurant is no longer active." });
+        }
+      }
     }
 
     setTokenCookie(res, generateToken(user._id));

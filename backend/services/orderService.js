@@ -3,7 +3,9 @@ const OrderItem = require("../models/OrderItem");
 const Cart = require("../models/Cart");
 const Item = require("../models/Item");
 const Restaurant = require("../models/Restaurant");
+const Manager = require("../models/Manager");
 const Notification = require("../models/Notification");
+const Feedback = require("../models/Feedback");
 const mongoose = require("mongoose");
 
 class OrderService {
@@ -18,6 +20,11 @@ class OrderService {
       }
 
       const restaurantId = cartItems[0].restaurant;
+      const restaurant = await Restaurant.findById(restaurantId).session(session);
+      if (!restaurant || restaurant.status === "deleted") {
+        throw { statusCode: 400, message: "This restaurant is no longer active and cannot accept orders" };
+      }
+      
       let orderTotalPrice = 0;
       const orderItemsData = [];
 
@@ -85,7 +92,7 @@ class OrderService {
       matchStage.deliveryStatus = { $nin: ["delivered", "cancelled"] };
     }
 
-    return await Order.aggregate([
+    const orders = await Order.aggregate([
       { $match: matchStage },
       { $sort: { createdAt: -1 } },
       { $lookup: { from: "orderitems", localField: "_id", foreignField: "order", as: "items" } },
@@ -97,10 +104,44 @@ class OrderService {
           items: { _id: 1, item: 1, itemName: 1, quantity: 1, totalPrice: 1 },
       } },
     ]);
+
+    // Check if items are reviewed
+    const orderIds = orders.map(o => o._id);
+    const feedbacks = await Feedback.find({
+      order: { $in: orderIds },
+      user: userId
+    }).lean();
+
+    const reviewedMap = {};
+    feedbacks.forEach(f => {
+      reviewedMap[`${f.order.toString()}_${f.item.toString()}`] = true;
+    });
+
+    orders.forEach(order => {
+      if (order.items) {
+        order.items.forEach(item => {
+          item.hasReviewed = !!reviewedMap[`${order._id.toString()}_${item.item.toString()}`];
+        });
+      }
+    });
+
+    return orders;
   }
 
-  async getRestaurantOrders(ownerId) {
-    const restaurant = await Restaurant.findOne({ owner: ownerId });
+  async getRestaurantForUser(user) {
+    if (user.role === 'owner') {
+      return await Restaurant.findOne({ owner: user._id, status: { $ne: "deleted" } });
+    } else if (user.role === 'manager') {
+      const managerProfile = await Manager.findOne({ user: user._id });
+      if (managerProfile) {
+        return await Restaurant.findOne({ _id: managerProfile.restaurant, status: { $ne: "deleted" } });
+      }
+    }
+    return null;
+  }
+
+  async getRestaurantOrders(user) {
+    const restaurant = await this.getRestaurantForUser(user);
     if (!restaurant) throw { statusCode: 404, message: "Restaurant not found" };
 
     return await Order.aggregate([
@@ -124,8 +165,8 @@ class OrderService {
     ]);
   }
 
-  async updateDeliveryStatus(ownerId, orderId, deliveryStatus, io) {
-    const restaurant = await Restaurant.findOne({ owner: ownerId });
+  async updateDeliveryStatus(user, orderId, deliveryStatus, io) {
+    const restaurant = await this.getRestaurantForUser(user);
     if (!restaurant) throw { statusCode: 404, message: "Restaurant not found" };
 
     const order = await Order.findOne({ _id: orderId, restaurant: restaurant._id });
@@ -175,8 +216,8 @@ class OrderService {
     return order;
   }
 
-  async getTransactions(ownerId, search, startDate, endDate) {
-    const restaurant = await Restaurant.findOne({ owner: ownerId });
+  async getTransactions(user, search, startDate, endDate) {
+    const restaurant = await this.getRestaurantForUser(user);
     if (!restaurant) throw { statusCode: 404, message: 'Restaurant not found' };
 
     let matchStage = { restaurant: restaurant._id, paymentStatus: true };
@@ -206,8 +247,8 @@ class OrderService {
     ]);
   }
 
-  async getDashboardStats(ownerId) {
-    const restaurant = await Restaurant.findOne({ owner: ownerId });
+  async getDashboardStats(user) {
+    const restaurant = await this.getRestaurantForUser(user);
     if (!restaurant) throw { statusCode: 404, message: 'Restaurant not found' };
 
     const stats = await Order.aggregate([

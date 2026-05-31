@@ -13,24 +13,24 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 const getRestaurantOrders = asyncHandler(async (req, res) => {
-  const data = await orderService.getRestaurantOrders(req.user._id);
+  const data = await orderService.getRestaurantOrders(req.user);
   res.json({ success: true, data });
 });
 
 const updateDeliveryStatus = asyncHandler(async (req, res) => {
   const io = req.app.get("io");
-  const data = await orderService.updateDeliveryStatus(req.user._id, req.params.orderId, req.body.status, io);
+  const data = await orderService.updateDeliveryStatus(req.user, req.params.orderId, req.body.status, io);
   res.json({ success: true, data, message: `Delivery status updated to ${req.body.status}` });
 });
 
 const getTransactions = asyncHandler(async (req, res) => {
   const { search, startDate, endDate } = req.query;
-  const data = await orderService.getTransactions(req.user._id, search, startDate, endDate);
+  const data = await orderService.getTransactions(req.user, search, startDate, endDate);
   res.json({ success: true, data });
 });
 
 const getDashboardStats = asyncHandler(async (req, res) => {
-  const data = await orderService.getDashboardStats(req.user._id);
+  const data = await orderService.getDashboardStats(req.user);
   res.json({ success: true, data });
 });
 

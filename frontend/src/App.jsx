@@ -12,6 +12,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import OwnerRoute from "./components/common/OwnerRoute";
+import StaffRoute from "./components/common/StaffRoute";
 import CartSidebar from "./components/cart/CartSidebar";
 import RestaurantMismatchModal from "./components/cart/RestaurantMismatchModal";
 
@@ -24,6 +25,7 @@ const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/auth/ResetPasswordPage"));
+const SetupPasswordPage = lazy(() => import("./pages/auth/SetupPasswordPage"));
 const VerifyEmailPage = lazy(() => import("./pages/auth/VerifyEmailPage"));
 const RestaurantsPage = lazy(() => import("./pages/customer/RestaurantsPage"));
 const RestaurantDetailPage = lazy(() => import("./pages/customer/RestaurantDetailPage"));
@@ -69,6 +71,7 @@ function App() {
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                    <Route path="/setup-password/:token" element={<SetupPasswordPage />} />
                     <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
                     <Route path="/restaurants" element={<RestaurantsPage />} />
                     <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
@@ -112,9 +115,9 @@ function App() {
                     <Route
                       path="/owner/dashboard"
                       element={
-                        <OwnerRoute>
+                        <StaffRoute>
                           <OwnerDashboardPage />
-                        </OwnerRoute>
+                        </StaffRoute>
                       }
                     />
                     <Route
@@ -128,17 +131,17 @@ function App() {
                     <Route
                       path="/owner/menu"
                       element={
-                        <OwnerRoute>
+                        <StaffRoute>
                           <MenuManagementPage />
-                        </OwnerRoute>
+                        </StaffRoute>
                       }
                     />
                     <Route
                       path="/owner/orders"
                       element={
-                        <OwnerRoute>
+                        <StaffRoute>
                           <OrdersManagementPage />
-                        </OwnerRoute>
+                        </StaffRoute>
                       }
                     />
                     <Route

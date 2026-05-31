@@ -7,13 +7,13 @@ const {
   updateItem,
   deleteItem,
 } = require("../../controllers/itemController");
-const { protect } = require("../../middleware/authMiddleware");
+const { protect, authorizeRole } = require("../../middleware/authMiddleware");
 const upload = require("../../middleware/uploadMiddleware");
 
 router.get("/search", searchItems);
 router.get("/", getItems);
-router.post("/:restaurantId", protect, upload.single("image"), createItem);
-router.put("/:itemId", protect, upload.single("image"), updateItem);
-router.delete("/:itemId", protect, deleteItem);
+router.post("/:restaurantId", protect, authorizeRole("owner", "manager"), upload.single("image"), createItem);
+router.put("/:itemId", protect, authorizeRole("owner", "manager"), upload.single("image"), updateItem);
+router.delete("/:itemId", protect, authorizeRole("owner", "manager"), deleteItem);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getMyRestaurant, createRestaurant, updateRestaurant } from "../../api/restaurantAPI";
+import { getMyRestaurant, createRestaurant, updateRestaurant, deleteRestaurant } from "../../api/restaurantAPI";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { Store, MapPin, Phone, Image as ImageIcon, Save, User, Mail, Clock, Globe, Map } from "lucide-react";
@@ -28,6 +28,11 @@ const RestaurantSetupPage = () => {
 
   const [restaurantImage, setRestaurantImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Delete Modal State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchRestaurant = async () => {
     try {
@@ -112,6 +117,28 @@ const RestaurantSetupPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (deleteConfirmName !== restaurant.name) {
+      toast.error("Restaurant name does not match.");
+      return;
+    }
+    try {
+      setIsDeleting(true);
+      const response = await deleteRestaurant(restaurant._id);
+      if (response.success) {
+        toast.success("Restaurant deleted successfully.");
+        setRestaurant(null);
+        setShowDeleteModal(false);
+        setDeleteConfirmName("");
+        setIsEditing(true);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete restaurant.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner fullPage />;
 
   return (
@@ -152,18 +179,33 @@ const RestaurantSetupPage = () => {
                 Your restaurant details are currently set up and active on
                 Eatify.
               </p>
-              <button
-                className="btn btn--primary"
-                onClick={() => setIsEditing(true)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <Store size={18} />
-                Edit Details
-              </button>
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+                <button
+                  className="btn btn--primary"
+                  onClick={() => setIsEditing(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Store size={18} />
+                  Edit Details
+                </button>
+                <button
+                  className="btn btn--danger"
+                  onClick={() => setShowDeleteModal(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                  }}
+                >
+                  Delete Restaurant
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="restaurant-setup__form">
@@ -492,6 +534,46 @@ const RestaurantSetupPage = () => {
           )}
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: "400px" }}>
+            <h3 style={{ marginBottom: "15px", color: "#ef4444" }}>Delete Restaurant?</h3>
+            <p style={{ marginBottom: "20px", color: "#9ca3af" }}>
+              This action is permanent and will soft-delete your restaurant. 
+              To confirm, type the restaurant name: <strong>{restaurant.name}</strong>
+            </p>
+            <input
+              type="text"
+              className="form-input"
+              style={{ marginBottom: "20px", width: "100%" }}
+              placeholder={`Type "${restaurant.name}"`}
+              value={deleteConfirmName}
+              onChange={(e) => setDeleteConfirmName(e.target.value)}
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button
+                className="btn btn--secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmName("");
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn"
+                style={{ backgroundColor: "#ef4444", color: "white" }}
+                onClick={handleDelete}
+                disabled={isDeleting || deleteConfirmName !== restaurant.name}
+              >
+                {isDeleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

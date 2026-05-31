@@ -5,9 +5,10 @@ const {
   getMyManager,
   updateManager,
 } = require("../../controllers/managerController");
-const { protect } = require("../../middleware/authMiddleware");
+const { protect, authorizeRole } = require("../../middleware/authMiddleware");
 
 router.use(protect);
+router.use(authorizeRole("owner"));
 
 router.post("/", createManager);
 router.get("/my-restaurant", getMyManager);

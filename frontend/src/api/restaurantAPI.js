@@ -32,3 +32,8 @@ export const updateRestaurant = async (id, formData) => {
   });
   return response.data;
 };
+
+export const deleteRestaurant = async (id) => {
+  const response = await API.delete(`/restaurants/${id}`);
+  return response.data;
+};

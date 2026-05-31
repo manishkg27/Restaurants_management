@@ -23,9 +23,9 @@ router.delete("/:orderId", cancelOrder);
 
 
 // Manager/Owner Routes
-router.get('/dashboard-stats', authorizeRole('owner'), getDashboardStats); 
-router.get("/transactions", authorizeRole('owner'), getTransactions);
-router.get("/restaurant-orders", authorizeRole('owner'), getRestaurantOrders);
-router.patch("/:orderId/delivery", authorizeRole('owner'), validate(updateDeliveryStatusSchema), updateDeliveryStatus);
+router.get('/dashboard-stats', authorizeRole('owner', 'manager'), getDashboardStats); 
+router.get("/transactions", authorizeRole('owner', 'manager'), getTransactions);
+router.get("/restaurant-orders", authorizeRole('owner', 'manager'), getRestaurantOrders);
+router.patch("/:orderId/delivery", authorizeRole('owner', 'manager'), validate(updateDeliveryStatusSchema), updateDeliveryStatus);
 
 module.exports = router;

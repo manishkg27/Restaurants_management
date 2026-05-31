@@ -1,17 +1,26 @@
 const Item = require("../models/Item");
 const Restaurant = require("../models/Restaurant");
+const Manager = require("../models/Manager");
 const { uploadToCloudinary } = require("../utils/cloudinaryUpload");
+
+const isAuthorizedForRestaurant = async (user, restaurantId) => {
+  if (user.role === 'owner') {
+    const restaurant = await Restaurant.findById(restaurantId);
+    return restaurant && restaurant.owner.toString() === user._id.toString();
+  } else if (user.role === 'manager') {
+    const managerProfile = await Manager.findOne({ user: user._id, restaurant: restaurantId });
+    return !!managerProfile;
+  }
+  return false;
+};
 
 // @desc    Add new menu item
 // @route   POST /api/items/:restaurantId
 // @access  Private (Owner)
 const createItem = async (req, res) => {
   try {
-    const restaurant = await Restaurant.findById(req.params.restaurantId);
-    if (
-      !restaurant ||
-      restaurant.owner.toString() !== req.user._id.toString()
-    ) {
+    const isAuthorized = await isAuthorizedForRestaurant(req.user, req.params.restaurantId);
+    if (!isAuthorized) {
       return res
         .status(403)
         .json({
@@ -19,6 +28,9 @@ const createItem = async (req, res) => {
           message: "Not authorized to add items to this restaurant",
         });
     }
+
+    const restaurant = await Restaurant.findById(req.params.restaurantId);
+    if (!restaurant) return res.status(404).json({ success: false, message: "Restaurant not found" });
 
     let imageUrl = "";
     if (req.file) {
@@ -78,7 +90,7 @@ const searchItems = async (req, res) => {
 
     const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    const matchStage = {};
+    const matchStage = { "restaurantInfo.status": { $ne: "deleted" } };
     if (itemName) matchStage.name = { $regex: escapeRegex(itemName), $options: "i" };
     if (restaurantName)
       matchStage["restaurantInfo.name"] = {
@@ -151,8 +163,8 @@ const updateItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ success: false, message: "Item not found" });
 
-    const restaurant = await Restaurant.findById(item.restaurant);
-    if (!restaurant || restaurant.owner.toString() !== req.user._id.toString()) {
+    const isAuthorized = await isAuthorizedForRestaurant(req.user, item.restaurant);
+    if (!isAuthorized) {
       return res.status(403).json({ success: false, message: "Not authorized to update this item" });
     }
 
@@ -181,8 +193,8 @@ const deleteItem = async (req, res) => {
     const item = await Item.findById(req.params.itemId);
     if (!item) return res.status(404).json({ success: false, message: "Item not found" });
 
-    const restaurant = await Restaurant.findById(item.restaurant);
-    if (!restaurant || restaurant.owner.toString() !== req.user._id.toString()) {
+    const isAuthorized = await isAuthorizedForRestaurant(req.user, item.restaurant);
+    if (!isAuthorized) {
       return res.status(403).json({ success: false, message: "Not authorized to delete this item" });
     }
 

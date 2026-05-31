@@ -35,7 +35,7 @@ const OrdersPage = () => {
   const socketHook = useSocket(user);
 
   const fetchOrders = async () => {
-    setLoading(true);
+    if (orders.length === 0) setLoading(true);
     try {
       const response = await getMyOrders(activeTab);
       if (response.success) {
@@ -339,7 +339,7 @@ const OrdersPage = () => {
                             }}
                             className="orders-page__review-btn"
                           >
-                            Review {item.itemName.substring(0, 10)}...
+                            {item.hasReviewed ? "Edit Review" : "Review"} {item.itemName.substring(0, 10)}...
                           </button>
                         ))}
                       </div>
@@ -353,7 +353,10 @@ const OrdersPage = () => {
                     <FeedbackForm
                       itemId={order.items.find((it) => it._id === selectedItemForFeedback)?.item || order.items.find((it) => it._id === selectedItemForFeedback)?._id}
                       orderId={order._id}
-                      onSuccess={() => setSelectedItemForFeedback(null)}
+                      onSuccess={() => {
+                        setSelectedItemForFeedback(null);
+                        fetchOrders();
+                      }}
                     />
                   </div>
                 )}

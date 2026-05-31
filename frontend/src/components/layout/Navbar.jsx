@@ -7,7 +7,7 @@ import NotificationDropdown from "./NotificationDropdown";
 import "./Navbar.css";
 
 const Navbar = ({ onCartClick }) => {
-  const { user, logout, isOwner } = useAuth();
+  const { user, logout, isOwner, isRestaurantStaff } = useAuth();
   const { cartCount } = useCart();
   const navigate = useNavigate();
   const [navSearch, setNavSearch] = useState("");
@@ -65,15 +65,17 @@ const Navbar = ({ onCartClick }) => {
                 Register
               </Link>
             </div>
-          ) : isOwner() ? (
+          ) : isRestaurantStaff() ? (
             <div className="navbar__actions">
               <Link to="/owner/dashboard" className="navbar__nav-item">
                 <LayoutDashboard size={15} />
                 Dashboard
               </Link>
-              <Link to="/owner/restaurant" className="navbar__nav-item">
-                Setup
-              </Link>
+              {isOwner() && (
+                <Link to="/owner/restaurant" className="navbar__nav-item">
+                  Setup
+                </Link>
+              )}
               <Link to="/owner/menu" className="navbar__nav-item">
                 Menu
               </Link>
@@ -81,9 +83,11 @@ const Navbar = ({ onCartClick }) => {
                 <ClipboardList size={15} />
                 Orders
               </Link>
-              <Link to="/owner/manager" className="navbar__nav-item">
-                Manager
-              </Link>
+              {isOwner() && (
+                <Link to="/owner/manager" className="navbar__nav-item">
+                  Manager
+                </Link>
+              )}
               <Link to="/profile" className="navbar__nav-item">
                 <UserIcon size={16} />
               </Link>

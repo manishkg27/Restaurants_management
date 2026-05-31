@@ -25,7 +25,7 @@ const RegisterPage = () => {
     try {
       const response = await register({ username, email, password, role });
       if (response.success) {
-        toast.success("Registration successful! Please login.");
+        toast.success(response.message || "Registration successful! Please check your email to verify your account.");
         navigate("/login");
       }
     } catch (error) {

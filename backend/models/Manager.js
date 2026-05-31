@@ -8,6 +8,11 @@ const managerSchema = new mongoose.Schema(
       required: [true, "Manager must be linked to a restaurant"],
       unique: true, // One manager profile per restaurant
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "Manager profile must be linked to a user account"],
+    },
     name: {
       type: String,
       required: [true, "Manager name is required"],

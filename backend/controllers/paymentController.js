@@ -4,6 +4,7 @@ const Order = require("../models/Order");
 const PaymentHistory = require("../models/PaymentHistory");
 const Notification = require("../models/Notification");
 const Restaurant = require("../models/Restaurant");
+const Manager = require("../models/Manager");
 const Cart = require("../models/Cart");
 
 // Initialize Razorpay instance
@@ -121,12 +122,25 @@ const verifyPayment = async (req, res) => {
       if (restaurantDoc) {
         const msg = `New Order #${order._id} has been placed!`;
         
+        // Notification for Owner
         await Notification.create({
           recipient: restaurantDoc.owner,
           type: "new_order",
           message: msg,
           relatedOrder: order._id,
         });
+
+        // Notifications for Managers
+        const managers = await Manager.find({ restaurant: order.restaurant });
+        if (managers && managers.length > 0) {
+          const managerNotifications = managers.map(mgr => ({
+            recipient: mgr.user,
+            type: "new_order",
+            message: msg,
+            relatedOrder: order._id,
+          }));
+          await Notification.insertMany(managerNotifications);
+        }
 
         const io = req.app.get("io");
         if (io) {
