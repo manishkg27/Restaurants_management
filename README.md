@@ -28,7 +28,7 @@
 
 - **Managers** are invited by owners via email. After verifying their email and setting a password, they can access the dashboard, menu management, and order fulfillment flows for their assigned restaurant.
 
-The platform uses **MongoDB transactions** for atomic order placement, a **delivery status state machine**, **Razorpay HMAC-SHA256 verification**, **Socket.IO** room-based events, **Cloudinary** image uploads, **Nodemailer** for transactional email (console logging in development), and **Helmet**, **rate limiting**, and **Zod** validation.
+The platform uses **MongoDB transactions** for atomic order placement, a **delivery status state machine**, **Razorpay HMAC-SHA256 verification**, **Socket.IO** room-based events, **Cloudinary** image uploads, **Nodemailer** for transactional email (console logging in development), and **Helmet**, **rate limiting**, **centralized error handling** (`AppError` + `asyncHandler`), and **Zod** validation across route payloads.
 
 ---
 
@@ -39,14 +39,14 @@ The platform uses **MongoDB transactions** for atomic order placement, a **deliv
 | Feature | Description |
 |---------|-------------|
 | Restaurant discovery | Browse restaurants with search and pagination; deleted restaurants are hidden |
-| Advanced dish search | Filter by name, restaurant, location, vegetarian flag; sort by rating or price |
+| Advanced dish search | Filter by `search` text, restaurant, location, vegetarian flag; sort by rating or price |
 | Menu browsing | Restaurant detail page with items and operating hours |
 | Smart cart | One cart per user with embedded items; single-restaurant enforcement (409 conflict + mismatch modal) |
 | Razorpay payments | Server-side order creation, client modal, HMAC signature verification, payment audit trail |
 | Retry failed payments | Unpaid orders tab with retry payment flow |
 | Real-time order tracking | Socket.IO `orderStatusUpdate` events with visual progress timeline |
 | Order history | Tabbed view: Active / Unpaid / Past orders |
-| Order cancellation | Cancel unpaid orders only |
+| Order cancellation | Cancel unpaid orders only via status-update endpoint (`PATCH /orders/:orderId/cancel`) |
 | Item reviews | Star ratings (1–5) with text per item per order; edit existing reviews |
 | Real-time notifications | Bell icon with unread count; mark read / delete |
 | Address book | CRUD for multiple saved delivery addresses |
@@ -93,7 +93,8 @@ The platform uses **MongoDB transactions** for atomic order placement, a **deliv
 | API versioning | All endpoints under `/api/v1/` |
 | Security middleware | Helmet headers, rate limiting, 10 KB JSON body limit |
 | Request logging | Morgan with request IDs |
-| Zod validation | Order placement and delivery status updates |
+| Zod validation | Route-level payload validation via dedicated validator schemas and middleware |
+| Centralized errors | `AppError` + `asyncHandler` remove repetitive try/catch and standardize API error responses |
 | MongoDB transactions | Atomic order + order-item creation |
 | Error boundary | React error boundary with fallback UI |
 | Code splitting | Pages lazy-loaded with `React.lazy()` + `Suspense` |
@@ -375,7 +376,7 @@ All endpoints are prefixed with `/api/v1`. Authentication uses the httpOnly `eat
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | `GET` | `/items` | ❌ | List items (pagination) |
-| `GET` | `/items/search` | ❌ | Advanced search with filters |
+| `GET` | `/items/search` | ❌ | Advanced search with filters (`search`, `restaurantName`, `location`, `isVegetarian`, `sortBy`, `page`, `limit`) |
 | `POST` | `/items/:restaurantId` | ✅ Owner/Manager | Add menu item |
 | `PUT` | `/items/:itemId` | ✅ Owner/Manager | Update menu item |
 | `DELETE` | `/items/:itemId` | ✅ Owner/Manager | Delete menu item |
@@ -396,7 +397,7 @@ All endpoints are prefixed with `/api/v1`. Authentication uses the httpOnly `eat
 |--------|----------|------|-------------|
 | `POST` | `/orders` | ✅ | Place order (Zod validated, transaction) |
 | `GET` | `/orders/my-orders` | ✅ | User orders (`current`, `payment-pending`, `delivered`) |
-| `DELETE` | `/orders/:orderId` | ✅ | Cancel unpaid order |
+| `PATCH` | `/orders/:orderId/cancel` | ✅ | Cancel unpaid order (status update) |
 | `GET` | `/orders/dashboard-stats` | ✅ Owner/Manager | Dashboard statistics |
 | `GET` | `/orders/transactions` | ✅ Owner/Manager | Transaction ledger |
 | `GET` | `/orders/restaurant-orders` | ✅ Owner/Manager | Restaurant paid orders |
@@ -532,7 +533,8 @@ Restaurants Management/
 │   ├── services/orderService.js # Order business logic
 │   ├── socket/socketHandler.js  # Socket.IO auth + rooms
 │   ├── utils/                   # cloudinaryUpload, generateToken, sendEmail
-│   ├── validators/orderValidator.js
+│   ├── validators/               # auth, cart, feedback, item, manager,
+│   │                             # order, restaurant, user validators
 │   └── server.js
 │
 ├── frontend/
@@ -620,7 +622,7 @@ Terminal states (`delivered`, `cancelled`) have no outgoing transitions.
 
 - **No CSRF tokens** — cookie auth relies on `SameSite=Strict` and CORS origin restrictions
 - **SMTP transporter commented out** — production email requires uncommenting code in `sendEmail.js` and configuring SMTP env vars
-- **Manager banking details** stored in plaintext (informational only, no payout integration)
+- **Manager banking details** are encrypted at rest (AES-256-CBC), but you still need to provide a strong `ENCRYPTION_KEY` for production (avoid default fallback)
 - **Avatar field** exists in the User schema and API but has no upload UI in the frontend
 
 ---
@@ -679,7 +681,7 @@ Update `FRONTEND_URL`, `VITE_API_URL`, `VITE_SOCKET_URL`, and Razorpay settings 
 - [ ] Coupon / discount system
 - [ ] Order tracking map with geolocation
 - [ ] Admin panel for platform-wide management
-- [ ] Encrypt manager banking details at rest
+- [ ] Secure `ENCRYPTION_KEY` management (key rotation / remove dev fallback) for production
 - [ ] React Query / SWR for server state caching
 - [ ] Expanded test coverage beyond health check
 - [ ] CI/CD pipeline with GitHub Actions
