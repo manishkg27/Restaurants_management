@@ -37,13 +37,24 @@ const RestaurantsPage = () => {
   };
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      if (page !== 1) {
+        setPage(1);
+      } else {
+        fetchFilteredRestaurants();
+      }
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search, city]);
+
+  useEffect(() => {
     fetchFilteredRestaurants();
   }, [page]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setPage(1);
-    fetchFilteredRestaurants();
+    if (page !== 1) setPage(1);
+    else fetchFilteredRestaurants();
   };
 
   return (

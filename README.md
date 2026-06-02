@@ -20,7 +20,7 @@
 
 ## Project Overview
 
-**Eatify** is a food delivery web application built on the MERN stack (MongoDB, Express.js 5, React 19, Node.js). It supports three authenticated roles:
+**Eatify** is a restaurant management web application built on the MERN stack (MongoDB, Express.js 5, React 19, Node.js). It supports three authenticated roles:
 
 - **Customers** discover restaurants, search dishes, manage a single-restaurant cart, place orders via Razorpay, track delivery status in real time, manage delivery addresses, and leave item reviews.
 
@@ -87,7 +87,7 @@ The platform uses **MongoDB transactions** for atomic order placement, a **deliv
 
 | Feature | Description |
 |---------|-------------|
-| JWT cookie authentication | httpOnly `eatify_token` cookie, `SameSite=Strict`, secure in production |
+| JWT cookie authentication | httpOnly `eatify_token` cookie, `SameSite=Strict`|
 | Role-based access control | `customer` / `owner` / `manager` with middleware and frontend route guards |
 | Cloudinary CDN | Image uploads for restaurants and menu items |
 | API versioning | All endpoints under `/api/v1/` |
@@ -299,7 +299,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
 RAZORPAY_KEY_SECRET=your_razorpay_secret
 
-# SMTP (optional — required for real email in production)
+# SMTP (optional — required for real email, currently console based verification)
 # Uncomment sendEmail transporter code in utils/sendEmail.js when configuring
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587

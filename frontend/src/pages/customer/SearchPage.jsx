@@ -18,6 +18,8 @@ const SearchPage = () => {
   const [location, setLocation] = useState("");
   const [isVegetarian, setIsVegetarian] = useState(false);
   const [sortBy, setSortBy] = useState("rating");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -33,6 +35,8 @@ const SearchPage = () => {
         restaurantName: restaurantName.trim() || undefined,
         location: location.trim() || undefined,
         isVegetarian: isVegetarian ? 'true' : undefined,
+        minPrice: minPrice !== "" ? minPrice : undefined,
+        maxPrice: maxPrice !== "" ? maxPrice : undefined,
         sortBy: sortBy,
       });
       if (response.success) {
@@ -56,7 +60,7 @@ const SearchPage = () => {
     }, 500);
 
     return () => clearTimeout(handler);
-  }, [itemName, restaurantName, location, isVegetarian, sortBy]);
+  }, [itemName, restaurantName, location, isVegetarian, sortBy, minPrice, maxPrice]);
 
   return (
     <div className="search-page">
@@ -144,6 +148,28 @@ const SearchPage = () => {
                 <label className="search-page__label" htmlFor="searchVegOnly" style={{ margin: 0, cursor: 'pointer', marginBottom: 0 }}>
                   Vegetarian Only
                 </label>
+              </div>
+
+              <div className="search-page__form-group">
+                <label className="search-page__label">Price Range (₹)</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="number"
+                    className="search-page__input"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    placeholder="Min"
+                    min="0"
+                  />
+                  <input
+                    type="number"
+                    className="search-page__input"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    placeholder="Max"
+                    min="0"
+                  />
+                </div>
               </div>
             </div>
 

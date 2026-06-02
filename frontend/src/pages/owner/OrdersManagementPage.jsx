@@ -41,17 +41,18 @@ const OrdersManagementPage = () => {
   }, []);
 
   useEffect(() => {
+    let cleanup = null;
     if (restaurant && socketHook.socket) {
       socketHook.joinRestaurantRoom(restaurant._id);
 
-      socketHook.listen("newOrder", (data) => {
+      cleanup = socketHook.listen("newOrder", (data) => {
         fetchOrdersAndRestaurant();
       });
     }
 
     return () => {
-      if (socketHook.socket) {
-        socketHook.stopListening("newOrder");
+      if (cleanup) {
+        cleanup();
       }
     };
   }, [restaurant, socketHook.socket]);

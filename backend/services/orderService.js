@@ -205,19 +205,21 @@ class OrderService {
         customMessage = "Your order was cancelled due to unforeseen issues. Your money will be credited back to your account within 2-3 working days.";
       }
       
-      await Notification.create({
-        recipient: order.user,
-        type: "order_update",
-        message: customMessage,
-        relatedOrder: order._id,
-      });
-
-      io.to(`user_${order.user}`).emit("orderStatusUpdate", {
-          orderId: order._id,
-          deliveryStatus: order.deliveryStatus,
-          updatedAt: order.updatedAt,
+      if (order.user) {
+        await Notification.create({
+          recipient: order.user,
+          type: "order_update",
           message: customMessage,
-      });
+          relatedOrder: order._id,
+        });
+
+        io.to(`user_${order.user.toString()}`).emit("orderStatusUpdate", {
+            orderId: order._id,
+            deliveryStatus: order.deliveryStatus,
+            updatedAt: order.updatedAt,
+            message: customMessage,
+        });
+      }
     }
 
     return order;

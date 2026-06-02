@@ -26,7 +26,7 @@ const loadRazorpayScript = () => {
 };
 
 const CheckoutPage = () => {
-  const { cartItems, cartTotal, restaurantName, clearCart } = useCart();
+  const { cartItems, cartTotal, restaurantName, clearCart, fetchCart, loading: cartLoading } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -43,6 +43,10 @@ const CheckoutPage = () => {
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   useEffect(() => {
     if (user && user.profile) {
@@ -187,7 +191,7 @@ const CheckoutPage = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner fullPage />;
+  if (loading || cartLoading) return <LoadingSpinner fullPage />;
 
   return (
     <div className="checkout-page">

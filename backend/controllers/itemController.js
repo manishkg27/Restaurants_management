@@ -77,6 +77,8 @@ const searchItems = asyncHandler(async (req, res) => {
     location,
     isVegetarian,
     sortBy,
+    minPrice,
+    maxPrice,
     page = 1,
     limit = 20,
   } = req.query;
@@ -99,6 +101,11 @@ const searchItems = asyncHandler(async (req, res) => {
   }
   if (isVegetarian === 'true') {
     matchStage.isVegetarian = true;
+  }
+  if (minPrice || maxPrice) {
+    matchStage.price = {};
+    if (minPrice) matchStage.price.$gte = Number(minPrice);
+    if (maxPrice) matchStage.price.$lte = Number(maxPrice);
   }
 
   let sortStage = {};

@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api', '') || (typeof window !== 'undefined' ? window.location.origin : "http://localhost:8000");
+const VITE_API = import.meta.env.VITE_API_URL;
+const API_BASE = VITE_API ? VITE_API.split("/api")[0] : null;
+
+const BROWSER_FALLBACK = typeof window !== "undefined"
+  ? (window.location.hostname === "localhost" ? "http://localhost:8000" : window.location.origin)
+  : "http://localhost:8000";
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || API_BASE || BROWSER_FALLBACK;
 
 const useSocket = (user) => {
   const socketRef = useRef(null);
@@ -50,9 +57,13 @@ const useSocket = (user) => {
     }
   };
 
-  const stopListening = (eventName) => {
+  const stopListening = (eventName, callback) => {
     if (socketRef.current) {
-      socketRef.current.off(eventName);
+      if (callback) {
+        socketRef.current.off(eventName, callback);
+      } else {
+        socketRef.current.off(eventName);
+      }
     }
   };
 

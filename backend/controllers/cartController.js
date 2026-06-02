@@ -11,6 +11,10 @@ const addToCart = asyncHandler(async (req, res) => {
   const { itemId } = req.body;
   const userId = req.user._id;
 
+  if (req.user.role === "owner" || req.user.role === "manager") {
+    throw new AppError("Owners and managers cannot add items to cart", 403);
+  }
+
   const item = await Item.findById(itemId);
   if (!item) {
     throw new AppError("Item not found", 404);

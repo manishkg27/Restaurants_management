@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import { Star, Plus, Check } from "lucide-react";
 import formatCurrency from "../../lib/formatCurrency";
 import ReviewsModal from "../feedback/ReviewsModal";
@@ -7,6 +8,7 @@ import "./ItemCard.css";
 
 const ItemCard = ({ item, isClosed }) => {
   const { addToCart, cartItems, removeItem } = useCart();
+  const { isRestaurantStaff } = useAuth();
   const [showReviews, setShowReviews] = useState(false);
 
   const inCart = cartItems.find((ci) => ci.itemInfo._id === item._id);
@@ -42,7 +44,7 @@ const ItemCard = ({ item, isClosed }) => {
           )}
         </div>
 
-        {/* Rating + Button */}
+          {/* Rating + Button */}
         <div className="item-card__footer">
           {item.averageRating ? (
             <div 
@@ -59,23 +61,25 @@ const ItemCard = ({ item, isClosed }) => {
             <span className="item-card__no-rating">No ratings</span>
           )}
 
-          {inCart ? (
-            <button
-              onClick={() => removeItem(inCart._id)}
-              className="item-card__btn item-card__btn--in-cart"
-            >
-              <Check size={11} /> In Cart
-            </button>
-          ) : (
-            <button
-              onClick={handleAdd}
-              disabled={isClosed}
-              className={`item-card__btn item-card__btn--add ${isClosed ? 'item-card__btn--disabled' : ''}`}
-              style={{ opacity: isClosed ? 0.5 : 1, cursor: isClosed ? 'not-allowed' : 'pointer' }}
-              title={isClosed ? "Restaurant is currently closed" : "Add to cart"}
-            >
-              <Plus size={11} /> Add
-            </button>
+          {!isRestaurantStaff() && (
+            inCart ? (
+              <button
+                onClick={() => removeItem(inCart._id)}
+                className="item-card__btn item-card__btn--in-cart"
+              >
+                <Check size={11} /> In Cart
+              </button>
+            ) : (
+              <button
+                onClick={handleAdd}
+                disabled={isClosed}
+                className={`item-card__btn item-card__btn--add ${isClosed ? 'item-card__btn--disabled' : ''}`}
+                style={{ opacity: isClosed ? 0.5 : 1, cursor: isClosed ? 'not-allowed' : 'pointer' }}
+                title={isClosed ? "Restaurant is currently closed" : "Add to cart"}
+              >
+                <Plus size={11} /> Add
+              </button>
+            )
           )}
         </div>
       </div>

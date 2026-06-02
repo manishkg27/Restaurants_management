@@ -45,38 +45,40 @@ const NotificationDropdown = () => {
   useEffect(() => {
     if (!user || !socketHook.socket) return;
 
+    let cleanups = [];
     const setupSockets = async () => {
-      if (isOwner()) {
+      // 1. ALL users join their personal room for order status updates
+      socketHook.emit("joinUserRoom", { userId: user._id });
+      const cleanupStatusUpdate = socketHook.listen("orderStatusUpdate", (data) => {
+        toast.info(data.message || "Order status updated", { position: "top-right", autoClose: 5000 });
+        fetchNotes();
+      });
+      cleanups.push(cleanupStatusUpdate);
+
+      // 2. ONLY staff join the restaurant room for new order updates
+      if (isRestaurantStaff()) {
         try {
           const resData = await getMyRestaurant();
           if (resData.success && resData.data) {
             socketHook.emit("joinRestaurantRoom", { restaurantId: resData.data._id });
-            socketHook.listen("newOrder", (data) => {
-              toast.info(data.message || "New order received!");
+            const cleanupNewOrder = socketHook.listen("newOrder", (data) => {
+              toast.info(data.message || "New order received!", { position: "top-right", autoClose: 5000 });
               fetchNotes(); // Re-fetch to get new notification
             });
+            cleanups.push(cleanupNewOrder);
           }
         } catch (error) {
           console.error("Failed to get restaurant for socket");
         }
-      } else {
-        socketHook.emit("joinUserRoom", { userId: user._id });
-        socketHook.listen("orderStatusUpdate", (data) => {
-          toast.info(data.message || "Order status updated");
-          fetchNotes();
-        });
       }
     };
 
     setupSockets();
 
     return () => {
-      if (socketHook.socket) {
-        socketHook.stopListening("newOrder");
-        socketHook.stopListening("orderStatusUpdate");
-      }
+      cleanups.forEach(cleanup => cleanup && cleanup());
     };
-  }, [user, socketHook.socket, isOwner]);
+  }, [user, socketHook.socket, isRestaurantStaff]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

@@ -151,10 +151,11 @@ export const CartProvider = ({ children }) => {
     updateQty,
     clearCart,
     confirmMismatchAction,
+    fetchCart,
   }), [
     cartItems, cartTotal, cartCount, restaurantName, loading, 
     showMismatchModal, mismatchData, addToCart, removeItem, 
-    updateQty, clearCart, confirmMismatchAction
+    updateQty, clearCart, confirmMismatchAction, fetchCart
   ]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

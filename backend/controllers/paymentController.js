@@ -34,14 +34,23 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
   }
 
   // 2. Set up Razorpay options (amount must be in paise/smallest currency unit)
+  // Razorpay minimum amount is 1 INR (100 paise)
+  const amountInPaise = Math.max(100, Math.round(order.totalPrice * 100));
+  
   const options = {
-    amount: Math.round(order.totalPrice * 100), // Multiply by 100 for INR and round to avoid float errors
+    amount: amountInPaise,
     currency: "INR",
-    receipt: order._id.toString(),
+    receipt: `rcpt_${order._id}`,
   };
 
-  // 3. Create order on Razorpay servers
-  const razorpayOrder = await razorpay.orders.create(options);
+  let razorpayOrder;
+  try {
+    // 3. Create order on Razorpay servers
+    razorpayOrder = await razorpay.orders.create(options);
+  } catch (error) {
+    console.error("Razorpay order creation error:", error);
+    throw new AppError(error.description || error.message || "Failed to create Razorpay order", 500);
+  }
 
   // 4. Temporarily attach the Razorpay Order ID to our local order
   order.razorpayOrderId = razorpayOrder.id;
@@ -114,28 +123,35 @@ const verifyPayment = asyncHandler(async (req, res) => {
       const msg = `New Order #${order._id} has been placed!`;
       
       // Notification for Owner
-      await Notification.create({
-        recipient: restaurantDoc.owner,
-        type: "new_order",
-        message: msg,
-        relatedOrder: order._id,
-      });
+      if (restaurantDoc.owner) {
+        await Notification.create({
+          recipient: restaurantDoc.owner,
+          type: "new_order",
+          message: msg,
+          relatedOrder: order._id,
+        });
+      }
 
       // Notifications for Managers
       const managers = await Manager.find({ restaurant: order.restaurant });
       if (managers && managers.length > 0) {
-        const managerNotifications = managers.map(mgr => ({
-          recipient: mgr.user,
-          type: "new_order",
-          message: msg,
-          relatedOrder: order._id,
-        }));
-        await Notification.insertMany(managerNotifications);
+        const managerNotifications = managers
+          .filter(mgr => mgr.user)
+          .map(mgr => ({
+            recipient: mgr.user,
+            type: "new_order",
+            message: msg,
+            relatedOrder: order._id,
+          }));
+        
+        if (managerNotifications.length > 0) {
+          await Notification.insertMany(managerNotifications);
+        }
       }
 
       const io = req.app.get("io");
       if (io) {
-        io.to(`restaurant_${order.restaurant}`).emit("newOrder", {
+        io.to(`restaurant_${order.restaurant.toString()}`).emit("newOrder", {
           message: msg,
           orderId: order._id,
           totalPrice: order.totalPrice,

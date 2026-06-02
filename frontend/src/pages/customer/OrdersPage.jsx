@@ -58,7 +58,7 @@ const OrdersPage = () => {
       socketHook.joinUserRoom(user._id);
 
       // Listen for delivery status updates
-      socketHook.listen("orderStatusUpdate", (data) => {
+      const cleanup = socketHook.listen("orderStatusUpdate", (data) => {
         // Optionally update the local order state if we wanted to avoid a full fetch:
         setOrders(prevOrders => prevOrders.map(order => 
           order._id === data.orderId 
@@ -66,13 +66,11 @@ const OrdersPage = () => {
             : order
         ));
       });
-    }
 
-    return () => {
-      if (socketHook.socket) {
-        socketHook.stopListening("orderStatusUpdate");
-      }
-    };
+      return () => {
+        cleanup();
+      };
+    }
   }, [user, socketHook.socket]);
 
   return (

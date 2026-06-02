@@ -31,7 +31,7 @@ const HomePage = () => {
         setLoading(true);
         setError(false);
         const restRes = await getRestaurants({ limit: 6 });
-        const itemsRes = await searchItems({ sortBy: 'rating', limit: 4 });
+        const itemsRes = await searchItems({ sortBy: 'rating', limit: 20 });
         if (restRes.success) setRestaurants(restRes.data || []);
         if (itemsRes.success) {
           setItems(itemsRes.data || []);

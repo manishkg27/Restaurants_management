@@ -81,10 +81,11 @@ const OwnerDashboardPage = () => {
   }, [searchQuery, startDate, endDate]);
 
   useEffect(() => {
+    let cleanup = null;
     if (restaurant && socketHook.socket) {
       socketHook.joinRestaurantRoom(restaurant._id);
 
-      socketHook.listen("newOrder", (data) => {
+      cleanup = socketHook.listen("newOrder", (data) => {
         toast.info(data.message || "New order received!", {
           position: "top-right",
           autoClose: 5000,
@@ -95,8 +96,8 @@ const OwnerDashboardPage = () => {
     }
 
     return () => {
-      if (socketHook.socket) {
-        socketHook.stopListening("newOrder");
+      if (cleanup) {
+        cleanup();
       }
     };
   }, [restaurant, socketHook.socket]);
