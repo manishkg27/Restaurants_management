@@ -37,7 +37,7 @@ export const updateDeliveryStatus = async (orderId, deliveryStatus) => {
 };
 
 export const cancelOrder = async (orderId) => {
-  const response = await API.delete(`/orders/${orderId}`);
+  const response = await API.patch(`/orders/${orderId}/cancel`);
   return response.data;
 };
 

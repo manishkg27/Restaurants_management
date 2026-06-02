@@ -7,6 +7,7 @@ const Manager = require("../models/Manager");
 const Notification = require("../models/Notification");
 const Feedback = require("../models/Feedback");
 const mongoose = require("mongoose");
+const AppError = require("../utils/AppError");
 
 class OrderService {
   async placeOrder(userId, deliveryInfo, expectedTotal) {
@@ -16,13 +17,13 @@ class OrderService {
     try {
       const cart = await Cart.findOne({ user: userId }).session(session);
       if (!cart || cart.items.length === 0) {
-        throw { statusCode: 400, message: "Cart is empty" };
+        throw new AppError("Cart is empty", 400);
       }
 
       const restaurantId = cart.restaurant;
       const restaurant = await Restaurant.findById(restaurantId).session(session);
       if (!restaurant || restaurant.status === "deleted") {
-        throw { statusCode: 400, message: "This restaurant is no longer active and cannot accept orders" };
+        throw new AppError("This restaurant is no longer active and cannot accept orders", 400);
       }
       
       let orderTotalPrice = 0;
@@ -45,7 +46,7 @@ class OrderService {
       }
 
       if (expectedTotal && Math.abs(orderTotalPrice - expectedTotal) > 0.01) {
-        throw { statusCode: 400, message: `Prices have been updated! The new total is ₹${orderTotalPrice}. Please review your cart to continue.` };
+        throw new AppError(`Prices have been updated! The new total is ₹${orderTotalPrice}. Please review your cart to continue.`, 400);
       }
 
       const [order] = await Order.create(
@@ -76,7 +77,8 @@ class OrderService {
     }
   }
 
-  async getMyOrders(userId, statusFilter) {
+  async getMyOrders(userId, statusFilter, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
     let matchStage = { user: new mongoose.Types.ObjectId(userId) };
 
     if (statusFilter === "payment-pending") {
@@ -95,6 +97,8 @@ class OrderService {
     const orders = await Order.aggregate([
       { $match: matchStage },
       { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       { $lookup: { from: "orderitems", localField: "_id", foreignField: "order", as: "items" } },
       { $lookup: { from: "restaurants", localField: "restaurant", foreignField: "_id", as: "restaurantInfo" } },
       { $unwind: "$restaurantInfo" },
@@ -140,13 +144,16 @@ class OrderService {
     return null;
   }
 
-  async getRestaurantOrders(user) {
+  async getRestaurantOrders(user, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
     const restaurant = await this.getRestaurantForUser(user);
-    if (!restaurant) throw { statusCode: 404, message: "Restaurant not found" };
+    if (!restaurant) throw new AppError("Restaurant not found", 404);
 
     return await Order.aggregate([
       { $match: { restaurant: restaurant._id, paymentStatus: true } },
       { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       { $lookup: { from: "orderitems", localField: "_id", foreignField: "order", as: "items" } },
       { $addFields: {
           orderStatus: {
@@ -167,10 +174,10 @@ class OrderService {
 
   async updateDeliveryStatus(user, orderId, deliveryStatus, io) {
     const restaurant = await this.getRestaurantForUser(user);
-    if (!restaurant) throw { statusCode: 404, message: "Restaurant not found" };
+    if (!restaurant) throw new AppError("Restaurant not found", 404);
 
     const order = await Order.findOne({ _id: orderId, restaurant: restaurant._id });
-    if (!order) throw { statusCode: 404, message: "Order not found or unauthorized" };
+    if (!order) throw new AppError("Order not found or unauthorized", 404);
 
     const VALID_TRANSITIONS = {
       pending: ['confirmed', 'cancelled'],
@@ -182,7 +189,7 @@ class OrderService {
     };
 
     if (!VALID_TRANSITIONS[order.deliveryStatus]?.includes(deliveryStatus)) {
-      throw { statusCode: 400, message: `Invalid status transition from ${order.deliveryStatus} to ${deliveryStatus}` };
+      throw new AppError(`Invalid status transition from ${order.deliveryStatus} to ${deliveryStatus}`, 400);
     }
 
     order.deliveryStatus = deliveryStatus;
@@ -218,7 +225,7 @@ class OrderService {
 
   async getTransactions(user, search, startDate, endDate) {
     const restaurant = await this.getRestaurantForUser(user);
-    if (!restaurant) throw { statusCode: 404, message: 'Restaurant not found' };
+    if (!restaurant) throw new AppError('Restaurant not found', 404);
 
     let matchStage = { restaurant: restaurant._id, paymentStatus: true };
 
@@ -249,7 +256,7 @@ class OrderService {
 
   async getDashboardStats(user) {
     const restaurant = await this.getRestaurantForUser(user);
-    if (!restaurant) throw { statusCode: 404, message: 'Restaurant not found' };
+    if (!restaurant) throw new AppError('Restaurant not found', 404);
 
     const stats = await Order.aggregate([
       { $match: { restaurant: restaurant._id } },
@@ -269,9 +276,9 @@ class OrderService {
 
   async cancelOrder(userId, orderId) {
     const order = await Order.findOne({ _id: orderId, user: userId });
-    if (!order) throw { statusCode: 404, message: "Order not found" };
+    if (!order) throw new AppError("Order not found", 404);
     
-    if (order.paymentStatus === true) throw { statusCode: 400, message: "Cannot cancel a paid order" };
+    if (order.paymentStatus === true) throw new AppError("Cannot cancel a paid order", 400);
 
     order.deliveryStatus = "cancelled";
     await order.save();

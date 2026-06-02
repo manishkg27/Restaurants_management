@@ -12,14 +12,23 @@ const {
   verifyAndSetupManager,
 } = require("../../controllers/authController");
 const { protect } = require("../../middleware/authMiddleware");
+const validate = require("../../middleware/validate");
+const {
+  registerSchema,
+  loginSchema,
+  resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  setupManagerSchema,
+} = require("../../validators/authValidator");
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", validate(registerSchema), registerUser);
+router.post("/login", validate(loginSchema), loginUser);
 router.get("/verify-email/:token", verifyEmail);
-router.post("/resend-verification", resendVerification);
-router.put("/setup-manager/:token", verifyAndSetupManager);
-router.post("/forgot-password", forgotPassword);
-router.put("/reset-password/:token", resetPassword);
+router.post("/resend-verification", validate(resendVerificationSchema), resendVerification);
+router.put("/setup-manager/:token", validate(setupManagerSchema), verifyAndSetupManager);
+router.post("/forgot-password", validate(forgotPasswordSchema), forgotPassword);
+router.put("/reset-password/:token", validate(resetPasswordSchema), resetPassword);
 router.post("/logout", protect, logoutUser);
 router.get("/profile", protect, getProfile);
 

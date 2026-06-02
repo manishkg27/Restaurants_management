@@ -22,7 +22,7 @@ const Navbar = ({ onCartClick }) => {
   const handleNavSearchSubmit = (e) => {
     e.preventDefault();
     if (navSearch.trim()) {
-      navigate(`/search?query=${encodeURIComponent(navSearch.trim())}`);
+      navigate(`/search?search=${encodeURIComponent(navSearch.trim())}`);
       setNavSearch("");
     }
   };

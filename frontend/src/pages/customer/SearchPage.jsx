@@ -8,7 +8,7 @@ import { Search, MapPin, SlidersHorizontal } from "lucide-react";
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialQuery = searchParams.get("query") || "";
+  const initialQuery = searchParams.get("search") || searchParams.get("query") || "";
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,7 @@ const SearchPage = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchParams({ query: itemName });
+    setSearchParams({ search: itemName });
     fetchResults();
   };
 
@@ -29,7 +29,7 @@ const SearchPage = () => {
     setLoading(true);
     try {
       const response = await searchItems({
-        itemName: itemName.trim() || undefined,
+        search: itemName.trim() || undefined,
         restaurantName: restaurantName.trim() || undefined,
         location: location.trim() || undefined,
         isVegetarian: isVegetarian ? 'true' : undefined,
@@ -46,8 +46,17 @@ const SearchPage = () => {
   };
 
   useEffect(() => {
-    fetchResults();
-  }, [initialQuery]);
+    const handler = setTimeout(() => {
+      if (itemName) {
+        setSearchParams({ search: itemName });
+      } else {
+        setSearchParams({});
+      }
+      fetchResults();
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [itemName, restaurantName, location, isVegetarian, sortBy]);
 
   return (
     <div className="search-page">

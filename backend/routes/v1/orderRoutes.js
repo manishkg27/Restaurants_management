@@ -19,7 +19,7 @@ router.use(protect);
 // Customer Routes
 router.post("/", validate(placeOrderSchema), placeOrder);
 router.get("/my-orders", getMyOrders);
-router.delete("/:orderId", cancelOrder);
+router.patch("/:orderId/cancel", cancelOrder);
 
 
 // Manager/Owner Routes

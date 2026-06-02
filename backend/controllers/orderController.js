@@ -8,13 +8,17 @@ const placeOrder = asyncHandler(async (req, res) => {
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {
-  const data = await orderService.getMyOrders(req.user._id, req.query.status);
-  res.json({ success: true, data });
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const data = await orderService.getMyOrders(req.user._id, req.query.status, page, limit);
+  res.json({ success: true, data, page, limit });
 });
 
 const getRestaurantOrders = asyncHandler(async (req, res) => {
-  const data = await orderService.getRestaurantOrders(req.user);
-  res.json({ success: true, data });
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const data = await orderService.getRestaurantOrders(req.user, page, limit);
+  res.json({ success: true, data, page, limit });
 });
 
 const updateDeliveryStatus = asyncHandler(async (req, res) => {

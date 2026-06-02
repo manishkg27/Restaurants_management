@@ -9,6 +9,8 @@ const setupSocket = require("./socket/socketHandler");
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const crypto = require('crypto');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Load env vars
@@ -60,6 +62,12 @@ if (isDev) {
 app.use(helmet());
 app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 app.use(express.json({ limit: "10kb" }));
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization against XSS
+app.use(xss());
 app.use(cookieParser());
 
 // Rate Limiting
