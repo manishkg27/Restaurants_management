@@ -241,7 +241,7 @@ cd ../frontend && npm install
 
 Create `backend/.env` (see [Environment Variables](#environment-variables)).
 
-### Start Development Servers
+### Start Servers
 
 ```bash
 # Terminal 1 — Backend
@@ -256,19 +256,6 @@ npm run dev
 ```
 
 Open **http://localhost:5173**. In development, verification and password-reset links are printed to the backend console (see `sendEmail.js`).
-
-### Build & Test
-
-```bash
-# Frontend production build
-cd frontend && npm run build && npm run preview
-
-# Backend tests
-cd backend && npx jest
-
-# Frontend lint
-cd frontend && npm run lint
-```
 
 ---
 
@@ -315,22 +302,6 @@ FROM_EMAIL=noreply@example.com
 VITE_API_URL=http://localhost:8000/api/v1
 VITE_SOCKET_URL=http://localhost:8000
 ```
-
-| Variable | Required | Description |
-|----------|:--------:|-------------|
-| `PORT` | No | Backend port (default: 8000) |
-| `NODE_ENV` | Yes | `development` or `production` |
-| `MONGO_URI` | Yes | MongoDB connection string |
-| `JWT_SECRET` | Yes | JWT signing secret |
-| `FRONTEND_URL` | No | CORS origin (default: `http://localhost:5173`) |
-| `CLOUDINARY_*` | Yes | Cloudinary credentials |
-| `RAZORPAY_*` | Yes | Razorpay API keys |
-| `SMTP_*` | No | Email delivery; without SMTP, dev mode logs links to console |
-| `VITE_API_URL` | No | Frontend API base URL |
-| `VITE_SOCKET_URL` | No | Socket.IO server URL |
-
-> Never commit `.env` files to version control.
-
 ---
 
 ## API Overview
@@ -618,20 +589,6 @@ Terminal states (`delivered`, `cancelled`) have no outgoing transitions.
 | Image upload filter | Multer accepts images only, 5 MB max |
 | Soft deletes | Restaurants marked deleted rather than hard removed |
 
-## Real-Time Functionality
-
-Socket.IO events use authenticated connections and room-based targeting:
-
-| Event | Direction | Room | Trigger |
-|-------|-----------|------|---------|
-| `joinUserRoom` | Client → Server | `user_{userId}` | Customer connects |
-| `joinRestaurantRoom` | Client → Server | `restaurant_{restaurantId}` | Owner/manager connects |
-| `newOrder` | Server → Client | `restaurant_{id}` | Payment verified |
-| `orderStatusUpdate` | Server → Client | `user_{userId}` | Delivery status changed |
-
-Notifications are persisted in MongoDB and pushed via Socket.IO for immediate UI updates.
-
----
 
 ## Future Improvements
 
