@@ -618,15 +618,6 @@ Terminal states (`delivered`, `cancelled`) have no outgoing transitions.
 | Image upload filter | Multer accepts images only, 5 MB max |
 | Soft deletes | Restaurants marked deleted rather than hard removed |
 
-### Known Limitations
-
-- **No CSRF tokens** — cookie auth relies on `SameSite=Strict` and CORS origin restrictions
-- **SMTP transporter commented out** — production email requires uncommenting code in `sendEmail.js` and configuring SMTP env vars
-- **Manager banking details** are encrypted at rest (AES-256-CBC), but you still need to provide a strong `ENCRYPTION_KEY` for production (avoid default fallback)
-- **Avatar field** exists in the User schema and API but has no upload UI in the frontend
-
----
-
 ## Real-Time Functionality
 
 Socket.IO events use authenticated connections and room-based targeting:
@@ -639,35 +630,6 @@ Socket.IO events use authenticated connections and room-based targeting:
 | `orderStatusUpdate` | Server → Client | `user_{userId}` | Delivery status changed |
 
 Notifications are persisted in MongoDB and pushed via Socket.IO for immediate UI updates.
-
----
-
-## Deployment Instructions
-
-### Option 1: VPS (DigitalOcean, AWS EC2, etc.)
-
-1. Provision a Linux server with Node.js 18+
-2. Clone the repository and install dependencies
-3. Build frontend: `cd frontend && npm run build`
-4. Set production environment variables (`NODE_ENV=production`, SMTP, etc.)
-5. Run backend with PM2:
-   ```bash
-   npm install -g pm2
-   cd backend
-   pm2 start server.js --name eatify-api
-   pm2 save && pm2 startup
-   ```
-6. Configure Nginx as reverse proxy for `/api`, `/socket.io`, and static frontend files
-
-### Option 2: Platform-as-a-Service
-
-| Component | Options |
-|-----------|---------|
-| Backend | Render, Railway, Heroku |
-| Frontend | Vercel, Netlify |
-| Database | MongoDB Atlas |
-
-Update `FRONTEND_URL`, `VITE_API_URL`, `VITE_SOCKET_URL`, and Razorpay settings for production domains.
 
 ---
 
