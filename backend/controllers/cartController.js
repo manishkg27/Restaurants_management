@@ -3,6 +3,7 @@ const Item = require("../models/Item");
 const Restaurant = require("../models/Restaurant");
 const AppError = require("../utils/AppError");
 const { asyncHandler } = require("../middleware/errorHandler");
+const { isRestaurantClosed } = require("../utils/restaurantStatus");
 
 // @desc    Add item to cart (Enforces Single-Restaurant Rule)
 // @route   POST /api/cart
@@ -23,6 +24,10 @@ const addToCart = asyncHandler(async (req, res) => {
   const restaurant = await Restaurant.findById(item.restaurant);
   if (!restaurant || restaurant.status === "deleted") {
     throw new AppError("This restaurant is no longer active", 400);
+  }
+
+  if (isRestaurantClosed(restaurant)) {
+    throw new AppError("This restaurant is currently closed. You cannot add its items to the cart.", 400);
   }
 
   let cart = await Cart.findOne({ user: userId });
@@ -82,7 +87,7 @@ const getCart = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   const cart = await Cart.findOne({ user: userId })
-    .populate("restaurant", "name")
+    .populate("restaurant", "name openTime closeTime")
     .populate("items.item", "name price image");
 
   if (!cart || !cart.items || cart.items.length === 0) {
@@ -126,6 +131,10 @@ const getCart = asyncHandler(async (req, res) => {
       items: formattedItems,
       cartTotal,
       restaurantName: cart.restaurant.name,
+      restaurantDetails: {
+        openTime: cart.restaurant.openTime,
+        closeTime: cart.restaurant.closeTime,
+      },
     },
   });
 });

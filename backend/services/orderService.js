@@ -8,6 +8,7 @@ const Notification = require("../models/Notification");
 const Feedback = require("../models/Feedback");
 const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
+const { isRestaurantClosed } = require("../utils/restaurantStatus");
 
 class OrderService {
   async placeOrder(userId, deliveryInfo, expectedTotal) {
@@ -24,6 +25,10 @@ class OrderService {
       const restaurant = await Restaurant.findById(restaurantId).session(session);
       if (!restaurant || restaurant.status === "deleted") {
         throw new AppError("This restaurant is no longer active and cannot accept orders", 400);
+      }
+      
+      if (isRestaurantClosed(restaurant)) {
+        throw new AppError("This restaurant is currently closed and cannot accept orders", 400);
       }
       
       let orderTotalPrice = 0;

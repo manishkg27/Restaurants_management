@@ -26,9 +26,36 @@ const loadRazorpayScript = () => {
 };
 
 const CheckoutPage = () => {
-  const { cartItems, cartTotal, restaurantName, clearCart, fetchCart, loading: cartLoading } = useCart();
+  const { cartItems, cartTotal, restaurantName, restaurantDetails, clearCart, fetchCart, loading: cartLoading } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  let isClosed = false;
+  if (restaurantDetails?.openTime && restaurantDetails?.closeTime) {
+    try {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentTime = currentHour * 60 + currentMinute;
+
+      const [openH, openM] = restaurantDetails.openTime.split(':').map(Number);
+      const [closeH, closeM] = restaurantDetails.closeTime.split(':').map(Number);
+      const openTime = openH * 60 + openM;
+      let closeTime = closeH * 60 + closeM;
+
+      if (closeTime < openTime) {
+        if (currentTime < openTime && currentTime > closeTime) {
+          isClosed = true;
+        }
+      } else {
+        if (currentTime < openTime || currentTime > closeTime) {
+          isClosed = true;
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing operating hours", e);
+    }
+  }
 
   const [useNewAddress, setUseNewAddress] = useState(false);
 
@@ -91,6 +118,10 @@ const CheckoutPage = () => {
   };
   const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
+    if (isClosed) {
+      toast.error("This restaurant is currently closed. Cannot place order.");
+      return;
+    }
     if (!name || !phone || !email || !address || !city || !state || !pinCode) {
       toast.error("Please provide all delivery information");
       return;
@@ -195,6 +226,11 @@ const CheckoutPage = () => {
 
   return (
     <div className="checkout-page">
+      {isClosed && (
+        <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '15px', borderRadius: '8px', maxWidth: '1200px', margin: '0 auto 20px auto', textAlign: 'center', fontWeight: 'bold' }}>
+          This restaurant is currently closed. You cannot place orders at this time. Please try again during operating hours ({restaurantDetails?.openTime} - {restaurantDetails?.closeTime}).
+        </div>
+      )}
       <div className="checkout-page__container">
         {/* Delivery Details Form */}
         <form
@@ -379,9 +415,9 @@ const CheckoutPage = () => {
             </div>
           )}
 
-          <button type="submit" className="checkout-page__button" disabled={loading}>
+          <button type="submit" className="checkout-page__button" disabled={loading || isClosed} style={isClosed ? { opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#9ca3af' } : {}}>
             <CreditCard size={15} />
-            {loading ? "Processing..." : "Pay & Confirm Order"}
+            {loading ? "Processing..." : isClosed ? "Restaurant Closed" : "Pay & Confirm Order"}
           </button>
         </form>
 

@@ -16,6 +16,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
   const [restaurantName, setRestaurantName] = useState(null);
+  const [restaurantDetails, setRestaurantDetails] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Mismatch modal state
@@ -27,6 +28,7 @@ export const CartProvider = ({ children }) => {
       setCartItems([]);
       setCartTotal(0);
       setRestaurantName(null);
+      setRestaurantDetails(null);
       return;
     }
     setLoading(true);
@@ -36,6 +38,7 @@ export const CartProvider = ({ children }) => {
         setCartItems(response.data.items);
         setCartTotal(response.data.cartTotal);
         setRestaurantName(response.data.restaurantName);
+        setRestaurantDetails(response.data.restaurantDetails || null);
       }
     } catch (error) {
       console.error("Fetch cart failed:", error);
@@ -107,6 +110,7 @@ export const CartProvider = ({ children }) => {
         setCartItems([]);
         setCartTotal(0);
         setRestaurantName(null);
+        setRestaurantDetails(null);
         return { success: true };
       }
     } catch (error) {
@@ -142,6 +146,7 @@ export const CartProvider = ({ children }) => {
     cartTotal,
     cartCount,
     restaurantName,
+    restaurantDetails,
     loading,
     showMismatchModal,
     setShowMismatchModal,
@@ -153,7 +158,7 @@ export const CartProvider = ({ children }) => {
     confirmMismatchAction,
     fetchCart,
   }), [
-    cartItems, cartTotal, cartCount, restaurantName, loading, 
+    cartItems, cartTotal, cartCount, restaurantName, restaurantDetails, loading, 
     showMismatchModal, mismatchData, addToCart, removeItem, 
     updateQty, clearCart, confirmMismatchAction, fetchCart
   ]);

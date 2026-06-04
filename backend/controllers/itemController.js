@@ -59,7 +59,7 @@ const getItems = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const items = await Item.find()
-    .populate("restaurant", "name city")
+    .populate("restaurant", "name city openTime closeTime")
     .skip(skip)
     .limit(limit)
     .lean();
@@ -139,9 +139,13 @@ const searchItems = asyncHandler(async (req, res) => {
         isVegetarian: 1,
         averageRating: 1,
         totalRatings: 1,
-        "restaurantInfo.name": 1,
-        "restaurantInfo.city": 1,
-        "restaurantInfo._id": 1,
+        restaurant: {
+          _id: "$restaurantInfo._id",
+          name: "$restaurantInfo.name",
+          city: "$restaurantInfo.city",
+          openTime: "$restaurantInfo.openTime",
+          closeTime: "$restaurantInfo.closeTime",
+        },
       },
     },
     sortStage,

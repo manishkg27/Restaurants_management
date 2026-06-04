@@ -13,12 +13,13 @@ const updateProfileSchema = z.object({
 
 const addressSchema = z.object({
   body: z.object({
-    street: z.string().min(1, "Street is required"),
+    title: z.string().min(1, "Title is required"),
+    address: z.string().min(1, "Address is required"),
     city: z.string().min(1, "City is required"),
     state: z.string().min(1, "State is required"),
-    pinCode: z.string().min(1, "Pin Code is required"),
+    pinCode: z.string().regex(/^[0-9]{5,10}$/, "Invalid ZIP/pin code"),
     country: z.string().min(1, "Country is required"),
-    isDefault: z.boolean().optional(),
+    contactNumber: z.string().regex(/^[0-9]{10,15}$/, "Invalid contact number"),
   }),
 });
 
